@@ -1,0 +1,316 @@
+﻿@page "/search/{id?}/{name?}"
+@using InfluencerApp.Model.Influencer;
+@using InfluencerApp.Model.Login;
+@using InfluencerApp.Model.Master;
+@using InfluencerApp.Services;
+@using Newtonsoft.Json;
+@using System.IdentityModel.Tokens.Jwt;
+@inject NavigationManager Navigation
+@inject IAppService AppService;
+@inject IInfluencerService InfluencerService;
+
+<div class="header-space"></div>
+
+<div class="bg-light" style="min-height:100vh;">
+<section class="d-flex justify-content-center p-3 bg-light">
+	<div class="input-group form-outline form-white">
+		<i class="mi mi-Search trailing text-muted"></i>
+		<input type="text" id="formWhite"
+		@bind-value="_FinalInfluencerName" @oninput="searchName" @bind-value:event="onchange" class="form-control text-black-50"
+		aria-describedby="basic-addon" />
+		<label class="form-label text-muted" for="formWhite">Search for influencer</label>
+	</div>
+</section>
+
+<div class="d-block m-3 bg-light">
+	<div class="form-helper d-block text-muted fw-lighter small">Filter by</div>
+	<div class="d-flex text-black-50 fw-lighter small">
+		<NavLink class="nav-link me-2" href="/"
+                    data-mdb-toggle="modal"
+                    data-mdb-target="#staticNationality">
+            @if (_NationalityId is null)
+			{
+				<span>Nationality</span>
+			}
+			else
+			{
+				@_NationalityId
+			}
+			<i class="fas fa-chevron-down mx-1"></i>
+		</NavLink>
+		<NavLink class="nav-link mx-1" href="/"
+				 data-mdb-toggle="modal"
+				 data-mdb-target="#staticGender">
+            @if (_GenderId is null)
+			{
+				<span>Gender</span>
+			}
+			else
+			{
+				@_GenderId
+			}
+			<i class="fas fa-chevron-down mx-1"></i>
+		</NavLink>
+		@if (Name is null)
+		{
+			<NavLink class="nav-link ms-2">All Categories</NavLink>
+		}
+		else
+		{
+			<NavLink class="nav-link ms-2">@Name</NavLink>
+		}
+    </div>
+</div>
+
+@if (_InfluencerModel is not null)
+{
+	@foreach (var item in _InfluencerModel)
+	{
+		<div class="card hover-shadow rounded-0 m-3" @onclick="args=>showInfo(item.Id.ToString(), args)">
+			<div class="d-flex g-0">
+				<div class="col-4">
+					<img src="https://mdbootstrap.com/img/Photos/dark-theme-demo/img1.jpg"
+						 class="w-100"
+						 alt="..." />
+				</div>
+				<div class="col-7">
+					<div class="card-body p-2 h-100">
+						<div class="h6 small fw-lighter d-inline-block text-truncate" style="max-width: 100vw;">@item.Name</div>
+						<div class="d-flex position-absolute align-items-center bottom-0 pb-2">
+							<img src="https://mdbootstrap.com/img/Photos/Avatars/img (29).jpg"
+								 class="rounded-circle"
+								 height="30"
+								 alt=""
+								 loading="lazy" />
+							<div class="text-muted fw-lighter ps-2">
+								<p class="mb-0">
+									<span class="small">TikTok</span> |
+									<span class="small">Insta</span> |
+									<span class="small">Snapchat</span>
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-1 d-flex justify-content-center align-items-center text-muted">
+					<i class="fas fa-chevron-right"></i>
+				</div>
+			</div>
+			<a href="#!">
+				<div class="mask"></div>
+			</a>
+		</div>
+	}
+}
+
+	<div style="height:15vh;"</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade"
+     id="staticGender"
+     data-mdb-backdrop="static"
+     data-mdb-keyboard="false"
+     tabindex="-1"s
+     role="dialog"
+     aria-labelledby="staticBackdropLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-center">
+                        <NavLink class="text-white-50 fw-lighter" id="0"
+						@onclick="args=>selectGender(Id, _DefaultGenderId, args)" href="/" data-mdb-dismiss="modal">All Gender</NavLink>
+                    </li>
+                @if (_Gender != null)
+                {
+						@foreach (var item in _Gender)
+                    {
+                        <li class="list-group-item text-center">
+                                <NavLink class="text-white-50 fw-lighter"
+								@onclick="args=>selectGender(item.Id.ToString(), item.Name, args)" id="@item.Id" href="/" data-mdb-dismiss="modal">@item.Name</NavLink>
+                        </li>
+                    }
+                }
+                </ul>
+            </div>
+            <div class="modal-footer d-flex justify-content-center align-items-center">
+                <button type="button"
+                        class="btn-close"
+                        data-mdb-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+        </div>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade"
+	 id="staticNationality"
+	 data-mdb-backdrop="static"
+	 data-mdb-keyboard="false"
+	 tabindex="-1"
+	 role="dialog"
+	 aria-labelledby="staticBackdropLabel"
+	 aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+		<div class="modal-content">
+			<div class="modal-body">
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item text-center">
+						<NavLink class="text-white-50 fw-lighter"
+						@onclick="args=>selectNationality(Id, _DefaultNationalityId, args)" id="0" href="/" data-mdb-dismiss="modal">All Nationality</NavLink>
+					</li>
+					@if (_Nationality != null)
+					{
+						@foreach (var item in _Nationality)
+						{
+							<li class="list-group-item text-center">
+								<NavLink class="text-white-50 fw-lighter"
+								@onclick="args=>selectNationality(item.Id.ToString(), item.Name, args)" id="@item.Id" href="/" data-mdb-dismiss="modal">@item.Name</NavLink>
+							</li>
+						}
+					}
+				</ul>
+			</div>
+			<div class="modal-footer d-flex justify-content-center align-items-center">
+				<button type="button"
+						class="btn-close"
+						data-mdb-dismiss="modal"
+						aria-label="Close"></button>
+			</div>
+		</div>
+	</div>
+</div>
+
+	<div class="footer-space"></div>
+
+@code {
+	[Parameter]
+	public string Id { get; set; }
+	[Parameter]
+	public string Name { get; set; } = "All Categories";
+	//public string Nationality { get; set; } = "All Categories";
+	//public string Gender { get; set; } = "All Categories";
+
+	List<SettingsResponseModel> _Gender;
+	List<SettingsResponseModel> _Nationality;
+	List<InfluencerViewModel> _InfluencerModel;
+	string _GenderId = "Gender";
+	string _NationalityId = "Nationality";
+	string _DefaultGenderId = "Gender";
+	string _DefaultNationalityId = "Nationality";
+	string _DefaultInfluencerName = "vlnt";
+	//string _GenderId = string.Empty;
+	//string _NationalityId = string.Empty;
+	public string genderId = "6000CDC5-C4F6-4950-9B11-D9BBF3A91ECB";
+	public string nationalityId = "91D2C111-59E2-483E-AA80-85B55F3602F2";
+
+	string _FinalGender = "";
+	string _FinalNationality = "";
+	string _FinalInfluencerName = "";
+	bool isLogin = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+		if (!string.IsNullOrWhiteSpace(userDetailsStr))
+		{
+			var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
+
+			var handler = new JwtSecurityTokenHandler();
+			var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
+			LoginSetting.LoginSecureStorage = userBasicDetail;
+			isLogin = true;
+		}
+
+
+		_Gender = await AppService.FilterBy(genderId);
+		_Nationality = await AppService.FilterBy(nationalityId);
+		_FinalGender = _DefaultGenderId;
+		_FinalNationality = _DefaultNationalityId;
+		//_InfluencerModel = await InfluencerService.GetInfluencerByFilter(_DefaultGenderId, Id, _DefaultNationalityId, _DefaultInfluencerName);
+	}
+
+	private async Task showInfo(string id, MouseEventArgs args)
+	{
+		await Task.Delay(1);
+		if (isLogin == true)
+		{
+			Navigation.NavigateTo("influencer/" + id);
+		}
+		else
+		{
+			Navigation.NavigateTo("/login");
+		}
+	}
+
+	private async Task selectNationality(string id, string name, MouseEventArgs args)
+	{
+		if (name != _DefaultNationalityId)
+		{
+			_FinalNationality = id;
+		}
+		else
+		{
+			_FinalNationality = name;
+		}
+		_NationalityId = name;
+		if (_FinalInfluencerName == "")
+		{
+			_InfluencerModel = await InfluencerService.GetInfluencerByFilter(_FinalGender, Id, _FinalNationality, _DefaultInfluencerName);
+		}
+		else
+		{
+			_InfluencerModel = await InfluencerService.GetInfluencerByFilter(_FinalGender, Id, _FinalNationality, _FinalInfluencerName);
+		}
+	}
+
+	private async Task selectGender(string id, string name, MouseEventArgs args)
+	{
+		if (name != _DefaultGenderId)
+		{
+			_FinalGender = id;
+		}
+		else
+		{
+			_FinalGender = name;
+		}
+		_GenderId = name;
+		if (_FinalInfluencerName == "")
+		{
+			_InfluencerModel = await InfluencerService.GetInfluencerByFilter(_FinalGender, Id, _FinalNationality, _DefaultInfluencerName);
+		}
+		else
+		{
+			_InfluencerModel = await InfluencerService.GetInfluencerByFilter(_FinalGender, Id, _FinalNationality, _FinalInfluencerName);
+		}
+	}
+
+	private async Task searchName(ChangeEventArgs args)
+	{
+		_FinalInfluencerName = args.Value.ToString();
+		if (_FinalInfluencerName == "")
+		{
+			_InfluencerModel = await InfluencerService.GetInfluencerByFilter(_FinalGender, Id, _FinalNationality, _DefaultInfluencerName);
+		}
+		else
+		{
+			_InfluencerModel = await InfluencerService.GetInfluencerByFilter(_FinalGender, Id, _FinalNationality, _FinalInfluencerName);
+		}
+	}
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (_FinalInfluencerName == "")
+		{
+			_InfluencerModel = await InfluencerService.GetInfluencerByFilter(_FinalGender, Id, _FinalNationality, _DefaultInfluencerName);
+		}
+		else
+		{
+			_InfluencerModel = await InfluencerService.GetInfluencerByFilter(_FinalGender, Id, _FinalNationality, _FinalInfluencerName);
+		}
+	}
+}

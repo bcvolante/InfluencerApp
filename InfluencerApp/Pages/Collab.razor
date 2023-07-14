@@ -1,0 +1,104 @@
+﻿@page "/collab"
+@using InfluencerApp.Model.Login;
+@using InfluencerApp.Model.Order;
+@using InfluencerApp.Services;
+@using Newtonsoft.Json;
+@using System.IdentityModel.Tokens.Jwt;
+@inject IOrderService OrderService;
+@inject NavigationManager Navigation
+
+<div class="header-space"></div>
+
+<div class="bg-light" style="min-height:100vh;">
+<section class="d-flex justify-content-center p-3 bg-light">
+	<div class="input-group form-outline form-white">
+		<i class="mi mi-Search trailing text-muted"></i>
+		<input type="text" id="formWhite"
+		@*@bind-value="_FinalInfluencerName" @oninput="searchName" @bind-value:event="onchange"*@
+		class="form-control text-black-50"
+			   aria-describedby="basic-addon" />
+		<label class="form-label text-muted" for="formWhite">Search for influencer</label>
+	</div>
+</section>
+
+@if (_OrderResponse is not null)
+{
+	@foreach (var item in _OrderResponse)
+	{
+		<div class="card hover-shadow rounded-0 m-3" @onclick="args=>showInfo(item.InfluencerId.ToString(), args, 1, item.Id.ToString())">
+			<div class="d-flex g-0">
+				<div class="col-4">
+					<img src="https://mdbootstrap.com/img/Photos/dark-theme-demo/img1.jpg"
+						 class="w-100"
+						 alt="..." />
+				</div>
+				<div class="col-7">
+					<div class="card-body p-2 h-100">
+						<label class="small fw-lighter">@item.Name</label>
+						<div class="d-flex position-absolute align-items-center bottom-0 pb-2">
+							<img src="https://mdbootstrap.com/img/Photos/Avatars/img (29).jpg"
+								 class="rounded-circle"
+								 height="30"
+								 alt=""
+								 loading="lazy" />
+							<div class="text-muted fw-lighter ps-2">
+								<p class="mb-0">
+									<span class="small">TikTok</span> |
+									<span class="small">Insta</span> |
+									<span class="small">Snapchat</span>
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-1 d-flex justify-content-center align-items-center text-muted">
+					<i class="fas fa-chevron-right"></i>
+				</div>
+			</div>
+			<a href="#!">
+				<div class="mask"></div>
+			</a>
+		</div>
+	}
+}
+<div style="height:15vh;"</div>
+</div>
+<div class="footer-space"></div>
+
+@code {
+	List<OrderResponse> _OrderResponse = new();
+	string _userId = "";
+
+	protected async override Task OnInitializedAsync()
+	{
+		string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+		if (!string.IsNullOrWhiteSpace(userDetailsStr))
+		{
+			var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
+
+			var handler = new JwtSecurityTokenHandler();
+			var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
+			LoginSetting.LoginSecureStorage = userBasicDetail;
+
+			if (jsontoken.ValidTo < DateTime.UtcNow)
+			{
+				Navigation.NavigateTo("/login");
+			}
+			else
+			{
+				_userId = LoginSetting.LoginSecureStorage.UserId.ToString();
+				_OrderResponse = await OrderService.GetOrderById(_userId);
+			}
+		}
+		else
+		{
+			Navigation.NavigateTo("/login");
+		}
+	}
+
+	private void showInfo(string id, MouseEventArgs args, int forInfo, string orderId)
+	{
+		Navigation.NavigateTo("influencer/" + id + "/" + orderId);
+	}
+}

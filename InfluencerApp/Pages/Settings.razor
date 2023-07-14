@@ -1,0 +1,89 @@
+﻿@page "/setting"
+@using InfluencerApp.Model.Master;
+@using InfluencerApp.Services;
+@inject IAppService AppService;
+
+<h3 class="text-center">Be a Rider!</h3>
+<EditForm Model="@_SettingsModel" OnValidSubmit="riderIn">
+    <DataAnnotationsValidator />
+    <div class="container">
+        <div class="form-group">
+            <label>Setting Type</label>
+            <div>
+                @if (_SettingsType == null)
+                {
+                    <label>No Data Found.</label>
+                }
+                else
+                {
+                    @*<select value="@_SettingsModel.TypeId" class="form-control" ValueExpression="@(()=>_SettingsModel.TypeId)">*@
+                    <select value="_SettingsModel.TypeId" class="form-control" ValueExpression="@(()=>_SettingsModel.TypeId)">
+                        <option value="0">-- Setting Type --</option>
+                        @foreach (var item in _SettingsType)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                    <ValidationMessage For="@(()=>_SettingsModel.TypeId)" />
+                }
+            </div>
+            @*<input @bind-value="_SettingsModel.TypeId" class="form-control" placeholder="Setting Type" />
+            <ValidationMessage For="@(()=>_SettingsModel.TypeId)" />*@
+        </div>
+        <div class="form-group mt-2">
+            <label>Name</label>
+            <input @bind-value="_SettingsModel.Name" class="form-control" placeholder="Name" />
+            <ValidationMessage For="@(()=>_SettingsModel.Name)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Description</label>
+            <input @bind-value="_SettingsModel.Description" class="form-control" placeholder="Description" />
+            <ValidationMessage For="@(()=>_SettingsModel.Description)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Image Path</label>
+            <input @bind-value="_SettingsModel.ImagePath" class="form-control" placeholder="Image" />
+            <ValidationMessage For="@(()=>_SettingsModel.ImagePath)" />
+        </div>
+        <div class="d-flex flex-row mt-2">
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-primary" type="submit">
+                    <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                    Ride On!
+                </button>
+                <NavLink class="nav-link" href="/">
+                    <span>Already a Rider?</span>
+                </NavLink>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    SettingsModel _SettingsModel = new();
+    private string _spinnerClass = "";
+
+    private async void riderIn()
+    {
+        _spinnerClass = "spinner-border spinner-border-sm";
+        var response = await AppService.Create(_SettingsModel);
+        if (!string.IsNullOrWhiteSpace(response))
+        {
+            await App.Current.MainPage.DisplayAlert("Success", "Welcome Rider!", "OK");
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Oops", "Be a Rider Again!", "OK");
+        }
+        _spinnerClass = "";
+        this.StateHasChanged();
+    }
+
+    List<SettingsResponseModel> _SettingsType;
+    public string typeId = "/7dfb3f1b-b15f-4442-fea1-08db666f653d";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _SettingsType = await AppService.FilterBy(typeId);
+    }
+}

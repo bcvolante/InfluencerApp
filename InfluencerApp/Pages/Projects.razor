@@ -1,0 +1,45 @@
+﻿@page "/projects"
+@using InfluencerApp.Model.Login;
+@inject NavigationManager Navigation
+
+<h3>Projects</h3>
+
+<EditForm Model="@_LoginModel" OnValidSubmit="logIn">
+    <div class="container">
+        <div class="form-group">
+            <label>List of Projects</label>
+        </div>
+        <div class="form-group mt-2">
+            <label>Project Number</label>
+            <label>Influencer</label>
+            <label>Status</label>
+        </div>
+        <div class="form-group mt-2">
+            <label>Project1</label>
+            <label>Influencer 1</label>
+            <label>Approved</label>
+            <NavLink class="nav-link" href="/service">
+                <span>View</span>
+            </NavLink>
+        </div>
+        <div class="d-flex flex-row mt-2">
+            <div class="d-flex justify-content-between">
+                <NavLink class="nav-link text-center" href="/home">
+                    <span>Back</span>
+                </NavLink>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    LoginModel _LoginModel = new();
+    //private string _spinnerClass = "";
+
+    private void logIn()
+    {
+        //_spinnerClass = "spinner-border spinner-border-sm";
+        Navigation.NavigateTo("service");
+    }
+
+}

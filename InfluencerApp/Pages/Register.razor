@@ -1,0 +1,175 @@
+﻿@page "/register"
+@using InfluencerApp.Model.Login;
+@using InfluencerApp.Model.Master;
+@using InfluencerApp.Services;
+@using Newtonsoft.Json;
+@using System.IdentityModel.Tokens.Jwt;
+@inject NavigationManager Navigation
+@inject IAppService AppService;
+@inject ILoginService LoginService;
+
+<div class="header-space"></div>
+@*<h3 class="text-center">Registration</h3>*@
+<div class="portal">
+<EditForm Model="@_RegisterModel" OnValidSubmit="register">
+    <DataAnnotationsValidator />
+
+    <div class="container">
+        <div class="form-group mt-2">
+            <label>Email Address</label>
+            <input type="email" @bind-value="_RegisterModel.Email" class="form-control" placeholder="Email Address" />
+            <ValidationMessage For="@(()=>_RegisterModel.Email)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Password</label>
+            <input type="password" @bind-value="_RegisterModel.Password" class="form-control" placeholder="Password" />
+            <ValidationMessage For="@(()=>_RegisterModel.Password)" />
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Picture</label>
+            <input type="file" @bind-value="_RegisterModel.ImagePath" class="form-control" placeholder="Picture" />
+            <ValidationMessage For="@(()=>_RegisterModel.ImagePath)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>User Type</label>
+            <div>
+                @if (_UserType == null)
+                {
+                    <label>No Data Found.</label>
+                }
+
+                else
+                {
+                    <select class="form-control" @bind="_RegisterModel.TypeId"
+                            ValueExpression="@(()=> @_RegisterModel.TypeId)">
+                        <option value="0">-- User Type --</option>
+                        @foreach (var item in _UserType)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                    <ValidationMessage For="@(()=>_RegisterModel.TypeId)" />
+                }
+            </div>
+        </div>
+        <div class="form-group mt-2">
+            <label>First Name</label>
+            <input @bind-value="_RegisterModel.FirstName" class="form-control" placeholder="First Name" />
+            <ValidationMessage For="@(()=>_RegisterModel.FirstName)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Last Name</label>
+            <input @bind-value="_RegisterModel.LastName" class="form-control" placeholder="Last Name" />
+            <ValidationMessage For="@(()=>_RegisterModel.LastName)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Company Name</label>
+            <input @bind-value="_RegisterModel.Name" class="form-control" placeholder="Company Name" />
+            <ValidationMessage For="@(()=>_RegisterModel.Name)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Size</label>
+            <input @bind-value="_RegisterModel.Size" class="form-control" placeholder="Size" />
+            <ValidationMessage For="@(()=>_RegisterModel.Size)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Industry</label>
+            <div>
+                @if (_Industry == null)
+                {
+                    <label>No Data Found.</label>
+                }
+
+                else
+                {
+                    <select class="form-control" @bind="_RegisterModel.IndustryId"
+                            ValueExpression="@(()=> @_RegisterModel.IndustryId)">
+                        <option value="0">-- Industry --</option>
+                        @foreach (var item in _Industry)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                    <ValidationMessage For="@(()=>_RegisterModel.IndustryId)" />
+                }
+            </div>
+        </div>
+        <div class="form-group mt-2">
+            <label>Mobile Number</label>
+            <input @bind-value="_RegisterModel.Number" class="form-control" placeholder="Mobile Number" />
+            <ValidationMessage For="@(()=>_RegisterModel.Number)" />
+        </div>
+        <div class="d-flex flex-row mt-2">
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-primary" type="submit">
+                    <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                    Register
+                </button>
+                <NavLink class="nav-link" href="/">
+                    <span>Login</span>
+                </NavLink>
+            </div>
+        </div>
+    </div>
+</EditForm>
+</div>
+
+<div class="footer-space"></div>
+
+@code {
+    RegisterModel _RegisterModel = new();
+    LoginModel _LoginModel = new();
+    private string _spinnerClass = "";
+
+    private async void register()
+    {
+        _spinnerClass = "spinner-border spinner-border-sm";
+        var response = await LoginService.Create(_RegisterModel);
+        //_LoginModel.UserName = _RegisterModel.Email;
+        //_LoginModel.Password = _RegisterModel.Password;
+        //_LoginModel.UserId = response.;
+        //response = await LoginService.CreateLogin(_LoginModel);
+        if (!string.IsNullOrWhiteSpace(response))
+        {
+            await App.Current.MainPage.DisplayAlert("Success", "Welcome!", "OK");
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Oops", "Try again!", "OK");
+        }
+        _spinnerClass = "";
+        this.StateHasChanged();
+    }
+
+    List<SettingsResponseModel> _UserType;
+    List<SettingsResponseModel> _Industry;
+    public string UserTypeId = "0b055410-9e2c-4dd8-a9f9-08db6683f67a";
+    public string IndustryTypeId = "2767c68a-8da6-46cf-00ab-08db66b7e9a1";
+
+    protected override async Task OnInitializedAsync()
+    {
+        //string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        //if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        //{
+        //    var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
+
+        //    var handler = new JwtSecurityTokenHandler();
+        //    var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
+        //    LoginSetting.LoginSecureStorage = userBasicDetail;
+
+        //    if (jsontoken.ValidTo < DateTime.UtcNow)
+        //    {
+        //        Navigation.NavigateTo("/login");
+        //    }
+        //}
+        //else
+        //{
+        //    Navigation.NavigateTo("/login");
+        //}
+
+        _UserType = await AppService.FilterBy(UserTypeId);
+        _Industry = await AppService.FilterBy(IndustryTypeId);
+    }
+}

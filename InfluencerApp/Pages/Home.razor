@@ -1,0 +1,708 @@
+﻿@page "/"
+@using InfluencerApp.Model.Influencer;
+@using InfluencerApp.Model.Login;
+@using InfluencerApp.Model.Master;
+@using InfluencerApp.Services;
+@using Newtonsoft.Json;
+@using System.IdentityModel.Tokens.Jwt;
+@inject NavigationManager NavManager;
+@inject IAppService AppService;
+@inject IInfluencerService InfluencerService;
+
+<div class="bg-light">
+
+@*<h3 class="text-center">Login</h3>*@
+
+<!-- Background image -->
+<!-- Carousel wrapper -->
+<div id="introCarousel" class="carousel slide carousel-fade shadow-2-strong" data-mdb-ride="carousel">
+    <!-- Indicators -->
+    <ol class="carousel-indicators">
+    @if (_InfluencerModel is not null)
+    {
+        var ctr = 0;
+        @foreach (var item in _InfluencerModel)
+        {
+            if(ctr == 0)
+            {
+                <li data-mdb-target="#introCarousel" data-mdb-slide-to="@ctr" class="active"></li>
+            }
+            else
+                {
+                    <li data-mdb-target="#introCarousel" data-mdb-slide-to="@ctr"></li>
+
+            }
+            ctr++;
+        }
+    }
+    </ol>
+
+    <!-- Inner -->
+    <div class="carousel-inner">
+
+        @if (_InfluencerModel is not null)
+        {
+            var ctr = 0;
+            @foreach (var item in _InfluencerModel)
+            {
+                if (ctr == 0)
+                {
+                    <!-- Single item -->
+                    <div class="carousel-item active">
+                        <div class="mask" style="background-color: rgba(0, 0, 0, 0.6);">
+                            <div class="d-flex justify-content-center align-items-end h-100">
+                                <div class="row">
+                                    <div class="text-white text-center">
+                                        <h3 class="mb-3">@item.Name</h3>
+                                        <h5 class="text-white-50 fw-lighter">@item.Industry</h5>
+                                    </div>
+                                    <div class="mx-auto d-flex justify-content-center align-items-center text-white-50 mb-4">
+                                        <h6 class="mx-4 fw-lighter"><span class="mi mi-Tiktok"></span>TikTok</h6>
+                                        <h5>|</h5><h6 class="mx-4 fw-lighter"><span class="mi mi-Instagram"></span>Instagram</h6>
+                                        <h5>|</h5><h6 class="mx-4 fw-lighter"><span class="mi mi-Snapchat"></span>Snapchat</h6>
+                                    </div>
+                                    <div class="text-white text-center mb-6">
+                                        <button type="button" data-mdb-ripple-color="dark" class="btn btn-link text-light fw-lighter mx-2 mi-5x"><i class="mi mi-Heart d-block"></i> Like</button>
+                                        <button type="button" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" @onclick="args=>showInfo(item.Id.ToString(), args, 1)" style="background-color: #b91d1d;"><i class="mi mi-MyNetwork"></i> Collab</button>
+                                        <button type="button" data-mdb-ripple-color="dark" class="btn btn-link text-light fw-lighter mx-2 mi-4x" @onclick="args=>showInfo(item.Id.ToString(), args, 2)"><i class="mi mi-Info d-block"></i> Info</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Single item -->
+                    <div class="carousel-item">
+                        <div class="mask" style="background-color: rgba(0, 0, 0, 0.6);">
+                            <div class="d-flex justify-content-center align-items-end h-100">
+                                <div class="row">
+                                    <div class="text-white text-center">
+                                        <h3 class="mb-3">@item.Name</h3>
+                                        <h5 class="text-white-50 fw-lighter">@item.Industry</h5>
+                                    </div>
+                                    <div class="mx-auto d-flex justify-content-center align-items-center text-white-50 mb-4">
+                                        <h6 class="mx-4 fw-lighter"><span class="mi mi-Tiktok"></span>TikTok</h6>
+                                        <h5>|</h5><h6 class="mx-4 fw-lighter"><span class="mi mi-Instagram"></span>Instagram</h6>
+                                        <h5>|</h5><h6 class="mx-4 fw-lighter"><span class="mi mi-Snapchat"></span>Snapchat</h6>
+                                    </div>
+                                    <div class="text-white text-center mb-6">
+                                        <button type="button" data-mdb-ripple-color="dark" class="btn btn-link text-light fw-lighter mx-2 mi-5x"><i class="mi mi-Heart d-block"></i> Like</button>
+                                        <button type="button" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" @onclick="args=>showInfo(item.Id.ToString(), args, 1)" style="background-color: #b91d1d;"><i class="mi mi-MyNetwork"></i> Collab</button>
+                                        <button type="button" data-mdb-ripple-color="dark" class="btn btn-link text-light fw-lighter mx-2 mi-4x" @onclick="args=>showInfo(item.Id.ToString(), args, 2)"><i class="mi mi-Info d-block"></i> Info</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                }
+                ctr++;
+            }
+        }
+        else
+        {
+            <!-- Single item -->
+            <div class="carousel-item active">
+                <div class="mask" style="background-color: rgba(0, 0, 0, 0.6);">
+                    <div class="d-flex justify-content-center align-items-end h-100">
+                        <div class="row">
+                            <div class="text-white text-center">
+                                <h3 class="mb-3">Influencer Name for Beverages</h3>
+                                <h5 class="text-white-50 fw-lighter">Food and Beverages</h5>
+                            </div>
+                            <div class="mx-auto d-flex justify-content-center align-items-center text-white-50 mb-4">
+                                <h6 class="mx-4 fw-lighter"><span class="mi mi-Tiktok"></span>TikTok</h6>
+                                <h5>|</h5><h6 class="mx-4 fw-lighter"><span class="mi mi-Instagram"></span>Instagram</h6>
+                                <h5>|</h5><h6 class="mx-4 fw-lighter"><span class="mi mi-Snapchat"></span>Snapchat</h6>
+                            </div>
+                            <div class="text-white text-center mb-6">
+                                <button type="button" data-mdb-ripple-color="dark" class="btn btn-link text-light fw-lighter mx-2 mi-5x"><i class="mi mi-Heart d-block"></i> Like</button>
+                                <button type="button" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" @onclick="args=>showInfo(_InfluenderId, args, 1)" style="background-color: #b91d1d;"><i class="mi mi-MyNetwork"></i> Collab</button>
+                                <button type="button" data-mdb-ripple-color="dark" class="btn btn-link text-light fw-lighter mx-2 mi-4x" @onclick="args=>showInfo(_InfluenderId, args, 2)"><i class="mi mi-Info d-block"></i> Info</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        }
+    </div>
+    <!-- Inner -->
+</div>
+
+<div class="text-black-50 mx-3 mt-3">
+    <h5>Trending Now</h5>
+</div>
+
+<!-- Carousel wrapper -->
+<div id="introCarousel2" class="carousel slide carousel-fade" data-mdb-ride="carousel">
+    <!-- Inner -->
+    <div class="carousel-inner">
+        <!-- Single item -->
+        <div class="carousel-item active d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(9).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded mx-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(4).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Single item -->
+        <div class="carousel-item d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(31).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded mx-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(9).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Single item -->
+        <div class="carousel-item d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(4).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded mx-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(31).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Inner -->
+    <!-- Controls -->
+    <a class="carousel-control-prev" href="#introCarousel2" role="button" data-mdb-slide="prev">
+        @*<span class="carousel-control-prev-icon" aria-hidden="true"></span>*@
+        <span class="fas fa-chevron-left mx-1"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#introCarousel2" role="button" data-mdb-slide="next">
+        @*<span class="carousel-control-next-icon" aria-hidden="true"></span>*@
+        <span class="fas fa-chevron-right mx-1"></span>
+        <span class="sr-only">Next</span>
+    </a>
+</div>
+
+    <div class="text-black-50 mx-3 mt-3">
+    <h5>Recently Viewed By You</h5>
+</div>
+
+<!-- Carousel wrapper -->
+<div id="introCarousel3" class="carousel slide carousel-fade" data-mdb-ride="carousel">
+    <!-- Inner -->
+    <div class="carousel-inner">
+        <!-- Single item -->
+        <div class="carousel-item active d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(9).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-1 me-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(4).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Single item -->
+        <div class="carousel-item d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(31).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-1 me-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(9).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Single item -->
+        <div class="carousel-item d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(4).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-1 me-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(31).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Inner -->
+    <!-- Controls -->
+    <a class="carousel-control-prev" href="#introCarousel3" role="button" data-mdb-slide="prev">
+        @*<span class="carousel-control-prev-icon" aria-hidden="true"></span>*@
+        <span class="fas fa-chevron-left mx-1"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#introCarousel3" role="button" data-mdb-slide="next">
+        @*<span class="carousel-control-next-icon" aria-hidden="true"></span>*@
+        <span class="fas fa-chevron-right mx-1"></span>
+        <span class="sr-only">Next</span>
+    </a>
+</div>
+
+    <div class="text-black-50 mx-3 mt-3">
+    <h5>Newest Collaboration</h5>
+</div>
+
+<!-- Carousel wrapper -->
+<div id="introCarousel4" class="carousel slide carousel-fade" data-mdb-ride="carousel">
+    <!-- Inner -->
+    <div class="carousel-inner">
+        <!-- Single item -->
+        <div class="carousel-item active d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(9).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-1 me-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(4).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Single item -->
+        <div class="carousel-item d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(31).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-1 me-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(9).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Single item -->
+        <div class="carousel-item d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(4).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-1 me-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(31).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Inner -->
+    <!-- Controls -->
+    <a class="carousel-control-prev" href="#introCarousel4" role="button" data-mdb-slide="prev">
+        @*<span class="carousel-control-prev-icon" aria-hidden="true"></span>*@
+        <span class="fas fa-chevron-left mx-1"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#introCarousel4" role="button" data-mdb-slide="next">
+        @*<span class="carousel-control-next-icon" aria-hidden="true"></span>*@
+        <span class="fas fa-chevron-right mx-1"></span>
+        <span class="sr-only">Next</span>
+    </a>
+</div>
+
+    <div class="text-black-50 mx-3 mt-3">
+    <h5>Inflluencers</h5>
+</div>
+
+<!-- Carousel wrapper -->
+<div id="introCarousel5" class="carousel slide carousel-fade" data-mdb-ride="carousel">
+    <!-- Inner -->
+    <div class="carousel-inner">
+
+        @if (_InfluencerModel is not null)
+        {
+            var ctr = 0;
+            for (ctr = 0; ctr < _InfluencerModel.Count; ctr+= 3)
+            {
+                if (ctr < 3)
+                {
+                    <!-- Single item -->
+                    <div class="carousel-item active d-flex px-3">
+                    @foreach (var item in _InfluencerModel.Skip(ctr).Take(3).ToList())
+                    {
+                        <div class="col-4">
+                            <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                                <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(9).jpg" class="mx-auto d-block" />
+                                <a href="#!">
+                                    <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                                </a>
+                            </div>
+                        </div>
+
+                    }
+                    </div>
+                    
+                }
+                else
+                {
+                    <!-- Single item -->
+                    <div class="carousel-item d-flex px-3">
+                    @foreach (var item in _InfluencerModel.Skip(ctr).Take(3).ToList())
+                    {
+                        <div class="col-4">
+                            <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-1 me-1" data-mdb-ripple-color="light">
+                                <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(4).jpg" class="mx-auto d-block" />
+                                <a href="#!">
+                                    <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                                </a>
+                            </div>
+                        </div>
+
+                    }
+                    </div>
+                }
+            }
+        }
+
+   @*         <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        <!-- Single item -->
+        <div class="carousel-item d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(31).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-1 me-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(9).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Single item -->
+        <div class="carousel-item d-flex px-3">
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded me-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(4).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-1 me-1" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(32).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="bg-image hover-overlay shadow-2-strong parent rounded ms-2" data-mdb-ripple-color="light">
+                    <img src="https://mdbootstrap.com/img/Photos/Avatars/img%20(31).jpg" class="mx-auto d-block" />
+                    <a href="#!">
+                        <div class="mask" style="background-color: rgba(251, 251, 251, 0.15);"></div>
+                    </a>
+                </div>
+        </div>
+        </div>*@
+    </div>
+    <!-- Inner -->
+
+    <!-- Controls -->
+    <a class="carousel-control-prev" href="#introCarousel5" role="button" data-mdb-slide="prev">
+        <span class="fas fa-chevron-left mx-1"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#introCarousel5" role="button" data-mdb-slide="next">
+        <span class="fas fa-chevron-right mx-1"></span>
+        <span class="sr-only">Next</span>
+    </a>
+</div>
+
+</div>
+
+<div class="footer-space bg-light"></div>
+
+@*
+<div class="container">
+    <h3 class="text-center">Banner</h3>
+    <p class="text-center">Newly Signed Influencers!</p>
+</div>
+
+<div class="container">
+    <h3 class="text-center">Categories</h3>
+    <p class="text-center">List of Influencer's Categories.</p>
+    <div class="container-fluid">
+        <div class="row">
+            @if (_Industry is not null)
+            {
+                @foreach (var item in _Industry)
+                {
+                    <div class="col-lg-4">
+                        <NavLink class="nav-link" href="/">
+                            <span>@item.Name</span>
+                        </NavLink>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h3 class="text-center">Influencer L20</h3>
+    <p class="text-center">Top 20 Influencers by Lowest Ranking (# of Days with No Projects).</p>*@
+    @*<NavLink class="nav-link" href="/influencer">
+    <span>Influencer 1</span>
+    </NavLink>
+    *@
+@*    <div class="container-fluid">
+        <div class="row">
+            @if (_InfluencerModel is not null)
+            {
+                @foreach (var item in _InfluencerModel)
+                {
+                    <NavLink class="nav-link" href="@($"/influencer/{item.Id}")">
+                        <span>@item.Name</span>
+                    </NavLink>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h3 class="text-center">Projects</h3>
+    <p class="text-center">Newly Published Projects!</p>
+</div>
+
+<div class="container">
+    <h3 class="text-center">Influencer >20</h3>
+    <p class="text-center">Influencer greater than top 20</p>
+</div>*@
+
+@*<div class="container">
+    <div class="d-flex flex-row mt-2">
+        <div class="d-flex justify-content-between">
+            <NavLink class="btn btn-primary" href="/account">
+                <span>Account</span>
+            </NavLink>
+            <NavLink class="btn btn-primary" href="/projects">
+                <span>Projects</span>
+            </NavLink>
+            <NavLink class="nav-link" href="/" @onclick="SignOut">
+                <span>Logout</span>
+            </NavLink>
+        </div>
+    </div>
+</div>*@
+
+@code {
+    LoginModel _LoginModel = new();
+    //private string _spinnerClass = "";
+    List<SettingsResponseModel> _Industry;
+    List<InfluencerViewModel> _InfluencerModel;
+    string _InfluenderId = "a1346f7b-4d8e-486b-8976-076e1e088522";
+    public string IndustryTypeId = "2767C68A-8DA6-46CF-00AB-08DB66B7E9A1";
+    bool isLogin = false;
+
+    private async void logIn()
+    {
+        //_spinnerClass = "spinner-border spinner-border-sm";
+        await App.Current.MainPage.DisplayAlert("Success", "Welcome Rider!", "OK");
+        //_spinnerClass = "";
+        this.StateHasChanged();
+    }
+
+    private async void showInfo(string id, MouseEventArgs args, int forInfo)
+    {
+        await Task.Delay(1);
+        if (isLogin == true)
+        {
+            NavManager.NavigateTo("influencer/" + id + "/");
+        }
+        else
+        {
+            NavManager.NavigateTo("/login");
+        }
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        {
+            var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
+
+            var handler = new JwtSecurityTokenHandler();
+            var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
+            LoginSetting.LoginSecureStorage = userBasicDetail;
+            isLogin = true;
+        }
+
+        _InfluencerModel = await InfluencerService.GetInfluencerByRanking();
+        _Industry = await AppService.GetIndustryWithData(IndustryTypeId);
+    }
+
+    private void SignOut()
+    {
+        SecureStorage.RemoveAll();
+        LoginSetting.LoginSecureStorage = null;
+        NavManager.NavigateTo("/login");
+    }
+}

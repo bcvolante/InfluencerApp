@@ -1,0 +1,531 @@
+﻿@page "/login"
+@using InfluencerApp.Model.Login;
+@using InfluencerApp.Model.Master;
+@using InfluencerApp.Services;
+@using Newtonsoft.Json;
+@using System.IdentityModel.Tokens.Jwt;
+@inject NavigationManager Navigation
+@inject ILoginService LoginService;
+@inject IAppService AppService;
+
+@*
+
+<div id="intro" class="container-fluid bg-image shadow-2-strong">
+    <div class="container-fluid mask d-flex align-items-center h-100" style="background-color: rgba(0, 0, 0, 0.8);">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-xl-5 col-md-8">
+                    <form class="bg-white rounded shadow-5-strong p-5">
+                        <!-- Email input -->
+                        <div class="form-outline mb-4">
+                            <input type="email" id="form1Example1" class="form-control" />
+                            <label class="form-label" for="form1Example1">Email address</label>
+                        </div>
+
+                        <!-- Password input -->
+                        <div class="form-outline mb-4">
+                            <input type="password" id="form1Example2" class="form-control" />
+                            <label class="form-label" for="form1Example2">Password</label>
+                        </div>
+
+                        <!-- 2 column grid layout for inline styling -->
+                        <div class="row mb-4">
+                            <div class="col d-flex justify-content-center">
+                                <!-- Checkbox -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="form1Example3" checked />
+                                    <label class="form-check-label" for="form1Example3">
+                                        Remember me
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col text-center">
+                                <!-- Simple link -->
+                                <a href="#!">Forgot password?</a>
+                            </div>
+                        </div>
+
+                        <!-- Submit button -->
+                        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Background image -->
+*@
+
+
+<div class="header-space"></div>
+
+<section>
+    <!-- Tabs navs -->
+    <ul class="nav nav-tabs nav-fill mb-3" id="ex-2" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link text-muted active"
+               id="ex-2-tab-1"
+               data-mdb-toggle="pill"
+               href="#ex-2-tabs-1"
+               role="tab"
+               aria-controls="pills-1"
+               aria-selected="true">Log In</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link text-muted"
+               id="ex-2-tab-2"
+               data-mdb-toggle="pill"
+               href="#ex-2-tabs-2"
+               role="tab"
+               aria-controls="pills-2"
+               aria-selected="false">Register</a>
+        </li>
+    </ul>
+    <!-- Tabs navs -->
+    <!-- Tabs content-->
+    <div class="tab-content" id="ex-2-content">
+        <div class="tab-pane fade show active"
+             id="ex-2-tabs-1"
+             role="tabpanel"
+             aria-labelledby="pills-1-tab">
+            
+            <EditForm Model="@_LoginModel" OnValidSubmit="logIn">
+                <DataAnnotationsValidator />
+
+                <div class="container">
+
+                    <section class="d-flex justify-content-center p-3">
+                        <div class="input-group form-outline form-white">
+                            <i class="mi mi-Mail trailing text-muted"></i>
+                            <input type="email" id="formWhite"
+                            @bind-value="_LoginModel.Email" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            <label class="form-label text-muted" for="formWhite">Email Address</label>
+                            <ValidationMessage For="@(()=>_LoginModel.Email)" />
+                        </div>
+                    </section>
+
+                    @*<div class="form-group mt-2">
+                        <label>Email Address</label>
+                        <input type="email" @bind-value="_LoginModel.Email" class="form-control" placeholder="Email Address" />
+                        <ValidationMessage For="@(()=>_LoginModel.Email)" />
+                    </div>*@
+
+                    <section class="d-flex justify-content-center p-3">
+                        <div class="input-group form-outline form-white">
+                            @*<i class="mi mi-Search trailing text-muted"></i>*@
+                            <input type="password" id="formWhite"
+                            @bind-value="_LoginModel.Password" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            <label class="form-label text-muted" for="formWhite">Password</label>
+                            <ValidationMessage For="@(()=>_LoginModel.Password)" />
+                        </div>
+                    </section>
+
+                    @*<div class="form-group mt-2">
+                        <label>Password</label>
+                        <input type="password" @bind-value="_LoginModel.Password" class="form-control" placeholder="Password" />
+                        <ValidationMessage For="@(()=>_LoginModel.Password)" />
+                    </div>*@
+                    <div class="d-flex flex-row mt-2 justify-content-center align-items-center">
+                            @*<div class="text-center p-4">*@
+                                <button type="submit" data-mdb-ripple-color="dark" class="btn btn-light mb-2 mx-2 mi-lg">
+                                    <i class="mi mi-MyNetwork"></i> Login
+                                    <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                                </button>
+                            @*</div>*@
+@*                            <button class="btn btn-primary" type="submit">
+                                <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                                Login
+                            </button>*@
+                            @*<NavLink class="nav-link" href="/register">
+                                <span>Register</span>
+                            </NavLink>*@
+                    </div>
+                </div>
+            </EditForm>
+
+
+        </div>
+        <div class="tab-pane fade" id="ex-2-tabs-2" role="tabpanel" aria-labelledby="pills-2-tab">
+
+            <EditForm Model="@_RegisterModel" OnValidSubmit="register">
+                <DataAnnotationsValidator />
+
+                <div class="container">
+
+                    <section class="d-flex justify-content-center p-3 bg-dark">
+                        <div class="input-group form-outline form-white">
+                            <i class="mi mi-Search trailing text-muted"></i>
+                            <input type="email" id="formWhite"
+                            @bind-value="_RegisterModel.Email" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            <label class="form-label text-muted" for="formWhite">Email Address</label>
+                            <ValidationMessage For="@(()=>_RegisterModel.Email)" />
+                        </div>
+                    </section>
+
+                    <section class="d-flex justify-content-center p-3 bg-dark">
+                        <div class="input-group form-outline form-white">
+                            <i class="mi mi-Search trailing text-muted"></i>
+                            <input type="password" id="formWhite"
+                            @bind-value="_RegisterModel.Password" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            @*<label class="form-label text-muted" for="formWhite">Password</label>*@
+                            <ValidationMessage For="@(()=>_RegisterModel.Password)" />
+                        </div>
+                    </section>
+
+@*
+                    <div class="form-group mt-2">
+                        <label>Email Address</label>
+                        <input type="email" @bind-value="_RegisterModel.Email" class="form-control" placeholder="Email Address" />
+                        <ValidationMessage For="@(()=>_RegisterModel.Email)" />
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Password</label>
+                        <input type="password" @bind-value="_RegisterModel.Password" class="form-control" placeholder="Password" />
+                        <ValidationMessage For="@(()=>_RegisterModel.Password)" />
+                    </div>*@
+
+                    <section class="d-flex justify-content-center p-3 bg-dark">
+                        <div class="input-group form-outline form-white">
+                            <i class="mi mi-Search trailing text-muted"></i>
+                            <input type="file" id="formWhite"
+                            @bind-value="_RegisterModel.ImagePath" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            <label class="form-label text-muted" for="formWhite">Picture</label>
+                            <ValidationMessage For="@(()=>_RegisterModel.ImagePath)" />
+                        </div>
+                    </section>
+
+                  @*  <div class="form-group mt-2">
+                        <label>Picture</label>
+                        <input type="file" @bind-value="_RegisterModel.ImagePath" class="form-control" placeholder="Picture" />
+                        <ValidationMessage For="@(()=>_RegisterModel.ImagePath)" />
+                    </div>*@
+
+                    <div class="form-group mt-2 bg-dark">
+                        <label>User Type</label>
+                        <div>
+                            @if (_UserType == null)
+                            {
+                                <label>No Data Found.</label>
+                            }
+
+                            else
+                            {
+                                <select class="form-control text-muted" @bind="_RegisterModel.TypeId"
+                                        ValueExpression="@(()=> @_RegisterModel.TypeId)">
+                                    <option value="0">-- User Type --</option>
+                                    @foreach (var item in _UserType)
+                                    {
+                                        <option value="@item.Id">@item.Name</option>
+                                    }
+                                </select>
+                                <ValidationMessage For="@(()=>_RegisterModel.TypeId)" />
+                            }
+                        </div>
+                    </div>
+
+                    
+
+                    <section class="d-flex justify-content-center p-3 bg-dark">
+                        <div class="input-group form-outline form-white">
+                            <i class="mi mi-Search trailing text-muted"></i>
+                            <input type="text" id="formWhite"
+                            @bind-value="_RegisterModel.FirstName" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            <label class="form-label text-muted" for="formWhite">First Name</label>
+                            <ValidationMessage For="@(()=>_RegisterModel.FirstName)" />
+                        </div>
+                    </section>
+
+                    <section class="d-flex justify-content-center p-3 bg-dark">
+                        <div class="input-group form-outline form-white">
+                            <i class="mi mi-Search trailing text-muted"></i>
+                            <input type="text" id="formWhite"
+                            @bind-value="_RegisterModel.LastName" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            <label class="form-label text-muted" for="formWhite">Last Name</label>
+                            <ValidationMessage For="@(()=>_RegisterModel.LastName)" />
+                        </div>
+                    </section>
+
+                    <section class="d-flex justify-content-center p-3 bg-dark">
+                        <div class="input-group form-outline form-white">
+                            <i class="mi mi-Search trailing text-muted"></i>
+                            <input type="text" id="formWhite"
+                            @bind-value="_RegisterModel.Name" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            <label class="form-label text-muted" for="formWhite">Name</label>
+                            <ValidationMessage For="@(()=>_RegisterModel.Name)" />
+                        </div>
+                    </section>
+
+                    <section class="d-flex justify-content-center p-3 bg-dark">
+                        <div class="input-group form-outline form-white">
+                            <i class="mi mi-Search trailing text-muted"></i>
+                            <input type="text" id="formWhite"
+                            @bind-value="_RegisterModel.Size" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            <label class="form-label text-muted" for="formWhite">Size</label>
+                            <ValidationMessage For="@(()=>_RegisterModel.Size)" />
+                        </div>
+                    </section>
+
+
+                   @* <div class="form-group mt-2">
+                        <label>First Name</label>
+                        <input @bind-value="_RegisterModel.FirstName" class="form-control" placeholder="First Name" />
+                        <ValidationMessage For="@(()=>_RegisterModel.FirstName)" />
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Last Name</label>
+                        <input @bind-value="_RegisterModel.LastName" class="form-control" placeholder="Last Name" />
+                        <ValidationMessage For="@(()=>_RegisterModel.LastName)" />
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Company Name</label>
+                        <input @bind-value="_RegisterModel.Name" class="form-control" placeholder="Company Name" />
+                        <ValidationMessage For="@(()=>_RegisterModel.Name)" />
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Size</label>
+                        <input @bind-value="_RegisterModel.Size" class="form-control" placeholder="Size" />
+                        <ValidationMessage For="@(()=>_RegisterModel.Size)" />
+                    </div>*@
+                    <div class="form-group mt-2 bg-dark">
+                        <label>Industry</label>
+                        <div>
+                            @if (_Industry == null)
+                            {
+                                <label>No Data Found.</label>
+                            }
+
+                            else
+                            {
+                                <select class="form-control text-muted" @bind="_RegisterModel.IndustryId"
+                                        ValueExpression="@(()=> @_RegisterModel.IndustryId)">
+                                    <option value="0">-- Industry --</option>
+                                    @foreach (var item in _Industry)
+                                    {
+                                        <option value="@item.Id">@item.Name</option>
+                                    }
+                                </select>
+                                <ValidationMessage For="@(()=>_RegisterModel.IndustryId)" />
+                            }
+                        </div>
+                    </div>
+
+                    <section class="d-flex justify-content-center p-3 bg-dark">
+                        <div class="input-group form-outline form-white">
+                            <i class="mi mi-Search trailing text-muted"></i>
+                            <input type="text" id="formWhite"
+                            @bind-value="_RegisterModel.Number" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            <label class="form-label text-muted" for="formWhite">Mobile Number</label>
+                            <ValidationMessage For="@(()=>_RegisterModel.Number)" />
+                        </div>
+                    </section>
+                   @* <div class="form-group mt-2">
+                        <label>Mobile Number</label>
+                        <input @bind-value="_RegisterModel.Number" class="form-control" placeholder="Mobile Number" />
+                        <ValidationMessage For="@(()=>_RegisterModel.Number)" />
+                    </div>*@
+
+                    <div class="d-flex flex-row mt-4 bg-dark">
+                        <div class="d-flex justify-content-center align-items-center">
+                            @*<div class="text-center p-4">*@
+                            <button type="submit" data-mdb-ripple-color="dark" class="btn btn-light mb-2 mx-2 mi-lg">
+                                <i class="mi mi-MyNetwork"></i> Register
+                                <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                            </button>
+                            @*</div>*@
+                            @*                            <button class="btn btn-primary" type="submit">
+                            <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                            Login
+                            </button>*@
+                            @*<NavLink class="nav-link" href="/register">
+                            <span>Register</span>
+                            </NavLink>*@
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+    <!-- Tabs content-->
+</section>
+
+<div class="footer-space"></div>
+
+
+@*<section class="portal">
+<EditForm Model="@_LoginModel" OnValidSubmit="logIn">
+    <DataAnnotationsValidator />*@
+ @*   <div class="form">
+        <div class="title">
+            <h1>LOG IN</h1>
+            <p>Welcome back! Please enter your details.</p>
+        </div>
+        <div class="input-field">
+            <input type="email" id="username" @bind-value="_LoginModel.Email" />
+            <label for="username">Email Address</label>
+            <ValidationMessage For="@(()=>_LoginModel.Email)" />
+        </div>
+        <div class="input-field">
+                <input type="password" id="password" @bind-value="_LoginModel.Password" />
+                <label for="password">Password</label>
+                <ValidationMessage For="@(()=>_LoginModel.Password)" />
+                <img id="show-hide-pass" src="../Resources/Images/show_eye.svg" alt="" />
+        </div>
+        <a href="#" id="forgot-pass">Forgot Password</a>
+        <button id="signin">Sign In</button>
+        <p id="signup">
+            Don't have an account?
+            <a href="#">Sign up</a>
+        </p>
+    </div>*@
+
+  @*  <div class="container">
+        <div class="form-group mt-2">
+            <label>Email Address</label>
+            <input type="email" @bind-value="_LoginModel.Email" class="form-control" placeholder="Email Address" />
+            <ValidationMessage For="@(()=>_LoginModel.Email)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Password</label>
+            <input type="password" @bind-value="_LoginModel.Password" class="form-control" placeholder="Password" />
+            <ValidationMessage For="@(()=>_LoginModel.Password)" />
+        </div>
+        <div class="d-flex flex-row mt-2">
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-primary" type="submit">
+                    <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                    Login
+                </button>
+                <NavLink class="nav-link" href="/register">
+                    <span>Register</span>
+                </NavLink>
+            </div>
+        </div>
+    </div>
+</EditForm>
+</section>*@
+
+@code {
+    LoginModel _LoginModel = new();
+    RegisterModel _RegisterModel = new();
+    private string _spinnerClass = "";
+
+    List<SettingsResponseModel> _UserType;
+    List<SettingsResponseModel> _Industry;
+    public string UserTypeId = "0b055410-9e2c-4dd8-a9f9-08db6683f67a";
+    public string IndustryTypeId = "2767c68a-8da6-46cf-00ab-08db66b7e9a1";
+
+    private async void register()
+    {
+        _spinnerClass = "spinner-border spinner-border-sm";
+        var response = await LoginService.Create(_RegisterModel);
+        //_LoginModel.UserName = _RegisterModel.Email;
+        //_LoginModel.Password = _RegisterModel.Password;
+        //_LoginModel.UserId = response.;
+        //response = await LoginService.CreateLogin(_LoginModel);
+        if (!string.IsNullOrWhiteSpace(response))
+        {
+            await App.Current.MainPage.DisplayAlert("Success", "Welcome!", "OK");
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Oops", "Try again!", "OK");
+        }
+        _spinnerClass = "";
+        this.StateHasChanged();
+    }
+
+    private async void logIn()
+    {
+        _spinnerClass = "spinner-border spinner-border-sm";
+        var response = await LoginService.AuthenticateUser(_LoginModel);
+        if (response.IsSuccess)
+        {
+            var tokenResponse = JsonConvert.DeserializeObject<AuthenticateRequestAndResponse>(response.Content.ToString());
+
+            var handler = new JwtSecurityTokenHandler();
+            var jsontoken = handler.ReadToken(tokenResponse.AccessToken) as JwtSecurityToken;
+
+            string _UserId           = jsontoken.Claims.FirstOrDefault(f => f.Type == "ui").Value;
+            string _UserName         = jsontoken.Claims.FirstOrDefault(f => f.Type == JwtRegisteredClaimNames.Email).Value;
+            string _Password         = jsontoken.Claims.FirstOrDefault(f => f.Type == "pw").Value;
+            string _EmailVerified    = jsontoken.Claims.FirstOrDefault(f => f.Type == "ev").Value;
+            string _PasswordVerified = jsontoken.Claims.FirstOrDefault(f => f.Type == "pv").Value;
+            string _IsActive         = jsontoken.Claims.FirstOrDefault(f => f.Type == "ia").Value;
+            string _RefreshToken     = jsontoken.Claims.FirstOrDefault(f => f.Type == "rt").Value;
+            string _TypeId           = jsontoken.Claims.FirstOrDefault(f => f.Type == "ti").Value;
+            string _FirstName        = jsontoken.Claims.FirstOrDefault(f => f.Type == "fn").Value;
+            string _LastName         = jsontoken.Claims.FirstOrDefault(f => f.Type == "ln").Value;
+            string _Name             = jsontoken.Claims.FirstOrDefault(f => f.Type == "nm").Value;
+            string _Number           = jsontoken.Claims.FirstOrDefault(f => f.Type == "nr").Value;
+            string _ImagePath        = jsontoken.Claims.FirstOrDefault(f => f.Type == "mp").Value;
+            string _IndustryId       = jsontoken.Claims.FirstOrDefault(f => f.Type == "ii").Value;
+            string _Size             = jsontoken.Claims.FirstOrDefault(f => f.Type == "sz").Value;
+
+            var _LoginSecureStorage = new LoginSecureStorage
+                {
+
+                    UserId = new Guid(_UserId),
+                    UserName = _UserName,
+                    Password = _Password,
+                    EmailVerified = _EmailVerified == "true" ? true : false,
+                    PasswordVerified = _EmailVerified == "true" ? true : false,
+                    IsActive = _EmailVerified == "true" ? true : false,
+                    TypeId = new Guid(_TypeId),
+                    FirstName = _FirstName,
+                    LastName = _LastName,
+                    Name = _Name,
+                    Number = _Number,
+                    ImagePath = _ImagePath,
+                    IndustryId = new Guid(_IndustryId),
+                    Size = Convert.ToInt32(_Size),
+                    AccessToken = tokenResponse.AccessToken,
+                    RefreshToken = tokenResponse.RefreshToken
+                };
+
+            string userBasicInfoStr = JsonConvert.SerializeObject(_LoginSecureStorage);
+            await SecureStorage.SetAsync(nameof(LoginSetting.LoginSecureStorage), userBasicInfoStr);
+            LoginSetting.LoginSecureStorage = _LoginSecureStorage;
+
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Oops", "Invalid username or password!", "OK");
+        }
+        _spinnerClass = "";
+        this.StateHasChanged();
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _UserType = await AppService.FilterBy(UserTypeId);
+        _Industry = await AppService.FilterBy(IndustryTypeId);
+        //string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        //if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        //{
+        //    var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
+
+        //    var handler = new JwtSecurityTokenHandler();
+        //    var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
+        //    LoginSetting.LoginSecureStorage = userBasicDetail;
+
+        //    if (jsontoken.ValidTo >= DateTime.UtcNow)
+        //    {
+        //        Navigation.NavigateTo("/Register");
+        //    }
+        //}
+    }
+}

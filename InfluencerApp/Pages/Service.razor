@@ -1,0 +1,335 @@
+﻿@page "/service/{influencerId?}"
+@using InfluencerApp.Model.Influencer;
+@using InfluencerApp.Model.Login;
+@using InfluencerApp.Model.Master;
+@using InfluencerApp.Model.Order;
+@using InfluencerApp.Services;
+@using Newtonsoft.Json;
+@using System.IdentityModel.Tokens.Jwt;
+@inject NavigationManager NavManager;
+@inject IInfluencerService InfluencerService;
+@inject IAppService AppService;
+
+<h3>Services</h3>
+
+<EditForm Model="@_OrderViewModel" OnValidSubmit="logIn">
+    <div class="container">
+        <div class="form-group">
+            <label>List of available Services: </label>
+        </div>
+        <div class="form-group mt-2">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Amount</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_ServiceViewModel is not null)
+                    {
+                        @foreach (var item in _ServiceViewModel)
+                        {
+                            if (item.TypeId.ToString().ToUpper() == settingTypeId.ToUpper())
+                            {
+                                <tr>
+                                    <td>@item.ServiceSetting</td>
+                                    <td>@item.Amount</td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                        <input @onchange="
+                                            args=>serviceModify(
+                                                item.ServiceSettingId.ToString(),
+                                                item.TypeId.ToString(),
+                                                item.Amount,
+                                                args
+                                            )"
+                                            class="form-check-input" type="checkbox" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="form-group mt-2">
+            <label>Add-Ons: </label>
+        </div>
+        <div class="form-group mt-2">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Amount</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_ServiceViewModel is not null)
+                    {
+                        @foreach (var item in _ServiceViewModel)
+                        {
+                            if (item.TypeId.ToString().ToUpper() != settingTypeId.ToUpper())
+                            {
+                                <tr>
+                                    <td>@item.ServiceSetting</td>
+                                    <td>@item.Amount</td>
+                                    <td>
+                                        <input @onchange="
+                                            args=>serviceModify(
+                                                item.ServiceSettingId.ToString(),
+                                                item.TypeId.ToString(),
+                                                item.Amount,
+                                                args
+                                            )"
+                                         class="form-check-input" type="checkbox" />
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="form-group mt-2">
+            <label>Calendar:</label>
+        </div>
+        <div class="form-group mt-2">
+            <label>Date</label>
+            <input type="date" class="form-control" @attributes="@restDayAttributes" @onchange="@resetTimeType" onkeydown="return false;" />
+        </div>
+
+        @*        <div class="form-group mt-2">
+        <label>Date</label>
+        <div>
+        @if (_dateYear == null)
+        {
+        <label>No Data Found.</label>
+        }
+        else
+        {
+        <select class="form-control">
+        @foreach (var item in _dateYear)
+        {
+        @if (item == todayYear)
+        {
+
+        <option selected value="@item" @attributes="@yearAttributes">@item</option>
+        }
+        else
+        {
+
+        <option value="@item" @attributes="@yearAttributes">@item</option>
+        }
+        }
+        </select>
+        }
+        </div>
+        <div>
+        @if (_dateMonth == null)
+        {
+        <label>No Data Found.</label>
+        }
+        else
+        {
+        <select class="form-control">
+        @foreach (var item in _dateMonth)
+        {
+        @if (item < todayMonth)
+        {
+
+        <option disabled value="@item">@item</option>
+        }
+        else if (item == todayMonth)
+        {
+        <option selected value="@item">@item</option>
+        }
+        else
+        {
+
+        <option value="@item">@item</option>
+        }
+        }
+        </select>
+        }
+        </div>
+        <div>
+        @if (_dateDay == null)
+        {
+        <label>No Data Found.</label>
+        }
+        else
+        {
+        <select class="form-control">
+        @foreach (var item in _dateDay)
+        {
+        @if (item < todayDay)
+        {
+
+        <option disabled value="@item">@item</option>
+        }
+        else if(item == todayDay)
+        {
+        <option selected value="@item">@item</option>
+        }
+        else
+        {
+
+        <option value="@item">@item</option>
+        }
+        }
+        </select>
+        }
+        </div>
+        </div>
+        *@
+
+        <div class="form-group mt-2">
+            <label>Time</label>
+            <div>
+                @if (_timeTypeSetup is null || !_timeTypeSetup.Any())
+                {
+                    <label>No time enabled.</label>
+                }
+                else
+                {
+                    <select class="form-control">
+                        <option value="0">-- Time --</option>
+                        @foreach (var item in _timeTypeSetup)
+                        {
+                            var restDay = _RestDayModel.FirstOrDefault(bv => bv.Year == todayYear && bv.Month == todayMonth && bv.Day == todayDay && bv.TimeId == item.Id);
+                            if (restDay == null)
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+                            else
+                            {
+                                <option disabled value="@item.Id">@item.Name (Rest Day)</option>
+                            }
+                        }
+                    </select>
+                }
+            </div>
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Project Target: </label>
+            <NavLink class="nav-link">
+                <span>ADD</span>
+            </NavLink>
+        </div>
+        <div class="d-flex flex-row mt-2">
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-primary" type="submit">
+                    <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                    Add-To-Cart
+                </button>
+                <NavLink class="nav-link" href="@($"/influencer/{influencerId}")">
+                    <span>Back</span>
+                </NavLink>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public string influencerId { get; set; }
+
+    List<ServiceViewModel> _ServiceViewModel;
+    List<SettingsResponseModel> _timeTypeSetup;
+    List<TimeViewModel> _TimeViewModel;
+    List<RestDayModel> _RestDayModel;
+
+    OrderViewModel _OrderViewModel = new();
+    List<DetailModel> _DetailModel = new();
+    List<CalendarModel> _CalendarModel = new();
+    ServiceViewModel serviceViewModel = new();
+
+    Dictionary<string, object> restDayAttributes = new();
+
+    private string settingTypeId = "AD876D8D-F3AB-4CC4-9254-19C595042DA5";
+    private string timeTypeId = "9A89ACE8-9AA3-4767-A25A-BFEAC9CAE8DE";
+    private string minDate = (DateTime.Now).ToString("yyyy-MM-dd");
+    private string _spinnerClass = "";
+    private int todayYear = DateTime.Now.Year;
+    private int todayMonth = DateTime.Now.Month;
+    private int todayDay = DateTime.Now.Day;
+
+    //private int todayEOM = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1).AddDays(-1).Day;
+
+    private void logIn()
+    {
+        _spinnerClass = "spinner-border spinner-border-sm";
+        NavManager.NavigateTo("order/" + influencerId);
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        //string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        //if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        //{
+        //    var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
+
+        //    var handler = new JwtSecurityTokenHandler();
+        //    var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
+        //    LoginSetting.LoginSecureStorage = userBasicDetail;
+        //    if (jsontoken.ValidTo < DateTime.UtcNow)
+        //    {
+        //        NavManager.NavigateTo("/login");
+        //    }
+        //}
+        //else
+        //{
+        //    NavManager.NavigateTo("/login");
+        //}
+
+        _ServiceViewModel = await InfluencerService.GetInfluencerServiceById(influencerId);
+        _RestDayModel = await InfluencerService.GetInfluencerRestDayById(influencerId);
+        _timeTypeSetup = await AppService.FilterBy(timeTypeId);
+        _TimeViewModel = await InfluencerService.GetInfluencerTimeTypeById(influencerId);
+
+        foreach (var item in _TimeViewModel)
+        {
+            _timeTypeSetup.RemoveAll(b => b.Id == item.TimeSettingId);
+        }
+
+        restDayAttributes.Add("value", minDate);
+        restDayAttributes.Add("min", minDate);
+
+        //_OrderViewModel.InfluencerId = LoginSetting.LoginSecureStorage.UserId;
+        _OrderViewModel.InfluencerId = new Guid(influencerId);
+    }
+
+    private async Task resetTimeType(ChangeEventArgs args)
+    {
+        todayYear = Convert.ToInt32(args.Value.ToString().Substring(0, 4));
+        todayMonth = Convert.ToInt32(args.Value.ToString().Substring(5, 2));
+        todayDay = Convert.ToInt32(args.Value.ToString().Substring(8, 2));
+        await Task.Delay(1);
+    }
+
+    private async Task serviceModify(string ServiceTypeId, string TypeId, double Amount, ChangeEventArgs args)
+    {
+        //if (_DetailModel is null)
+        //{
+        //    _DetailModel.Add(new DetailModel { TypeId = new Guid(ServiceTypeId), ServiceTypeId = new Guid(ServiceTypeId), Amount = 0 });
+        //}
+        //else
+        //{
+            if (_DetailModel.Where(b => b.ServiceTypeId == new Guid(ServiceTypeId)).Any())
+            {
+                _DetailModel.RemoveAll(b => b.ServiceTypeId == new Guid(ServiceTypeId));
+            }
+            else
+            {
+            _DetailModel.Add(new DetailModel { TypeId = new Guid(ServiceTypeId), ServiceTypeId = new Guid(TypeId), Amount = Amount });
+            }
+        //}
+        await Task.Delay(1);
+    }
+}

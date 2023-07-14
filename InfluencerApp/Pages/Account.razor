@@ -1,0 +1,235 @@
+﻿@page "/account"
+@using InfluencerApp.Model.Login;
+@using InfluencerApp.Model.Master;
+@using InfluencerApp.Model.Users;
+@using InfluencerApp.Services;
+@using Newtonsoft.Json;
+@using System.IdentityModel.Tokens.Jwt;
+@inject IAppService AppService;
+@inject ILoginService LoginService;
+@inject IUserService UserService;
+@inject NavigationManager Navigation
+
+<div class="header-space"></div>
+<div class="bg-light text-black-50 p-3">
+@*<h3 class="text-black-50 text-center">Account</h3>*@
+<EditForm Model="@_RegisterModel" OnValidSubmit="register">
+    <DataAnnotationsValidator />
+        <div class="container text-black-50">
+        <div class="form-group mt-2">
+            <label>Email Address</label>
+                <input type="email" @bind-value="_RegisterModel.Email" class="form-control text-black-50" placeholder="Email Address" />
+            <ValidationMessage For="@(()=>_RegisterModel.Email)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Password</label>
+            <input type="password" @bind-value="_RegisterModel.Password" class="form-control text-black-50" placeholder="Password" />
+            <ValidationMessage For="@(()=>_RegisterModel.Password)" />
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Picture</label>
+                <input class="form-control text-black-50" placeholder="Profile Picture" @bind-value="_RegisterModel.ImagePath" />
+            @*<img src="@_RegisterModel.ImagePath" height="50" width="50" class="rounded-circle" />*@
+                <input type="file" class="form-control text-black-50" placeholder="Picture" />
+            @*<input type="file" @bind-value="_RegisterModel.ImagePath" class="form-control" placeholder="Profile Picture" />*@
+            @*<ValidationMessage For="@(()=>_RegisterModel.ImagePath)" />*@
+        </div>
+        <div class="form-group mt-2">
+            <label>User Type</label>
+            <div>
+                @if (_UserType == null)
+                {
+                    <label>No Data Found.</label>
+                }
+                else
+                {
+                        <select class="form-control text-black-50" @bind="_RegisterModel.TypeId"
+                            ValueExpression="@(()=> @_RegisterModel.TypeId)">
+                        <option value="0">-- User Type --</option>
+                        @foreach (var item in _UserType)
+                        {
+                            if (item.Id == @_RegisterModel.TypeId)
+                            {
+                                <option selected value="@item.Id">@item.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+                        }
+                    </select>
+                    <ValidationMessage For="@(()=>_RegisterModel.TypeId)" />
+                }
+            </div>
+        </div>
+        <div class="form-group mt-2">
+            <label>First Name</label>
+            <input @bind-value="_RegisterModel.FirstName" class="form-control text-black-50" placeholder="First Name" />
+            <ValidationMessage For="@(()=>_RegisterModel.FirstName)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Last Name</label>
+                <input @bind-value="_RegisterModel.LastName" class="form-control text-black-50" placeholder="Last Name" />
+            <ValidationMessage For="@(()=>_RegisterModel.LastName)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Company Name</label>
+                <input @bind-value="_RegisterModel.Name" class="form-control text-black-50" placeholder="Company Name" />
+            <ValidationMessage For="@(()=>_RegisterModel.Name)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Size</label>
+                <input @bind-value="_RegisterModel.Size" class="form-control text-black-50" placeholder="Size" />
+            <ValidationMessage For="@(()=>_RegisterModel.Size)" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Industry</label>
+            <div>
+                @if (_Industry == null)
+                {
+                    <label>No Data Found.</label>
+                }
+
+                else
+                {
+                        <select class="form-control text-black-50" @bind="_RegisterModel.IndustryId"
+                            ValueExpression="@(()=> @_RegisterModel.IndustryId)">
+                        <option value="0">-- Industry --</option>
+                        @foreach (var item in _Industry)
+                        {
+                            if (item.Id == @_RegisterModel.IndustryId)
+                            {
+                                <option selected value="@item.Id">@item.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+                        }
+                    </select>
+                    <ValidationMessage For="@(()=>_RegisterModel.IndustryId)" />
+                }
+            </div>
+        </div>
+        <div class="form-group mt-2">
+            <label>Mobile Number</label>
+                <input @bind-value="_RegisterModel.Number" class="form-control text-black-50" placeholder="Mobile Number" />
+            <ValidationMessage For="@(()=>_RegisterModel.Number)" />
+        </div>
+        <div class="d-flex flex-row mt-2">
+            <div class="d-flex justify-content-between">
+
+                    <button type="submit" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" style="background-color: #b91d1d;"><i class="mi mi-Save"></i> Save</button>
+                    <button type="button" data-mdb-ripple-color="dark" class="btn btn-link text-dark fw-lighter mx-2 mi-4x" @onclick="SignOut"><i class="mi mi-Info d-block"></i> Logout</button>
+
+                @*<button class="btn btn-primary" type="submit">
+                    <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                    Save
+                </button>
+                <NavLink class="nav-link" href="/" @onclick="SignOut">
+                    <span>Logout</span>
+                </NavLink>*@
+            </div>
+        </div>
+    </div>
+    </EditForm>
+</div>
+<div class="bg-light">
+    <div class="footer-space"></div>
+</div>
+
+
+@code {
+    RegisterModel _RegisterModel = new();
+    LoginModel _LoginModel = new();
+    List<SettingsResponseModel> _UserType;
+    List<SettingsResponseModel> _Industry;
+    UserModel _UserModel = new();
+    private string _spinnerClass = "";
+    private Guid id;
+
+    private async void register()
+    {
+        //UpdateUserRequest _UpdateUserRequest = new();
+
+        var _UpdateUserRequest = new UpdateUserRequest()
+            {
+                Id = id,
+                Email = _RegisterModel.Email,
+                Password = _RegisterModel.Password,
+                TypeId = _RegisterModel.TypeId,
+                FirstName = _RegisterModel.FirstName,
+                LastName = _RegisterModel.LastName,
+                Name = _RegisterModel.Name,
+                ImagePath = _RegisterModel.ImagePath,
+                Number = _RegisterModel.Number,
+                IndustryId = _RegisterModel.IndustryId,
+                Size = _RegisterModel.Size
+            };
+
+        _spinnerClass = "spinner-border spinner-border-sm";
+        var response = await UserService.UpdateUsers(_UpdateUserRequest);
+        if (!string.IsNullOrWhiteSpace(response))
+        {
+            await App.Current.MainPage.DisplayAlert("Success", "Account successfully updated!", "OK");
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Oops", "Try again!", "OK");
+        }
+        _spinnerClass = "";
+        this.StateHasChanged();
+    }
+
+    public string UserTypeId = "0b055410-9e2c-4dd8-a9f9-08db6683f67a";
+    public string IndustryTypeId = "2767c68a-8da6-46cf-00ab-08db66b7e9a1";
+
+    protected override async Task OnInitializedAsync()
+    {
+        string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        {
+            var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
+
+            var handler = new JwtSecurityTokenHandler();
+            var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
+            LoginSetting.LoginSecureStorage = userBasicDetail;
+
+            if (jsontoken.ValidTo < DateTime.UtcNow)
+            {
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                _RegisterModel.Email = LoginSetting.LoginSecureStorage.UserName;
+                _RegisterModel.Password = LoginSetting.LoginSecureStorage.Password;
+                id = LoginSetting.LoginSecureStorage.UserId;
+                _RegisterModel.TypeId = LoginSetting.LoginSecureStorage.TypeId;
+                _RegisterModel.FirstName = LoginSetting.LoginSecureStorage.FirstName;
+                _RegisterModel.LastName = LoginSetting.LoginSecureStorage.LastName;
+                _RegisterModel.Name = LoginSetting.LoginSecureStorage.Name;
+                _RegisterModel.ImagePath = LoginSetting.LoginSecureStorage.ImagePath;
+                _RegisterModel.Number = LoginSetting.LoginSecureStorage.Number;
+                _RegisterModel.IndustryId = LoginSetting.LoginSecureStorage.IndustryId;
+                _RegisterModel.Size = LoginSetting.LoginSecureStorage.Size;
+
+                _UserType = await AppService.FilterBy(UserTypeId);
+                _Industry = await AppService.FilterBy(IndustryTypeId);
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");            
+        }
+    }
+
+    private void SignOut()
+    {
+        SecureStorage.RemoveAll();
+        LoginSetting.LoginSecureStorage = null;
+        Navigation.NavigateTo("/login");
+    }
+}

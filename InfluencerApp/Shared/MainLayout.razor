@@ -1,0 +1,193 @@
+﻿@inherits LayoutComponentBase
+@using InfluencerApp.Model.Login;
+@using InfluencerApp.Model.Master;
+@using InfluencerApp.Services;
+@using Newtonsoft.Json;
+@using System.IdentityModel.Tokens.Jwt;
+@inject NavigationManager Navigation
+@inject IAppService AppService;
+
+@if (isPlayed == false)
+{
+    <div style="background-color: #F0F0F0;height:100vh;width:100vw;">
+    <video autoplay muted playsinline class="slideContent" style="
+       
+        height: 100vh;
+        width: auto;
+        margin: 0 auto;
+        overflow: hidden;
+        justify-content: center;
+        display: flex;
+        align-items: center;
+        " @onended="donePlaying">
+            <source src="videos/S1R-v2.1.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+    </div>
+}
+else
+
+{
+    
+@*<nav class="navbar sticky-top navbar-dark bg-dark">*@
+<nav class="navbar sticky-top navbar-light bg-light">
+    <div class="container-fluid d-block">
+        <a class="navbar-brand" href="#">
+                @*<img src="S1R.png" asp-append-version="true" width="10px" />*@
+            <img src="images/S1R.png" height="50vh" />
+            @*<img src="../Resources/Images/S1R.png" />*@
+        </a>
+        <div class="mx-auto d-flex justify-content-center align-items-center text-black-50 fw-lighter small">
+            @if (_Industry != null)
+            {
+                var i = 1;
+                @foreach (var item in _Industry)
+                {
+                    if (i <= 2)
+                    {
+                        <NavLink class="nav-link mx-auto " id="@item.Id" href="@($"/search/{item.Id}")" @onclick="args=>goSearch(item.Id.ToString(), item.Name, args)">@item.Name</NavLink>
+                    }
+                    i++;
+                }
+            }
+            <NavLink class="nav-link mx-auto" href="/"
+                        data-mdb-toggle="modal"
+                        data-mdb-target="#staticBackdrop">
+                Categories <i class="fas fa-chevron-down mx-1"></i>
+            </NavLink>
+        </div>
+    </div>
+</nav>
+
+<!-- Modal -->
+<div class="modal fade"
+     id="staticBackdrop"
+     data-mdb-backdrop="static"
+     data-mdb-keyboard="false"
+     tabindex="-1"s
+     role="dialog"
+     aria-labelledby="staticBackdropLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-center">
+                        <NavLink class="text-white-50 fw-lighter" id="0" href="/" @onclick="args=>goSearch(_IndustryId, _Name, args)" data-mdb-dismiss="modal">All Categories</NavLink>
+                    </li>
+                @if (_Industry != null)
+                {
+                    @foreach (var item in _Industry)
+                    {
+                        <li class="list-group-item text-center">
+                                <NavLink class="text-white-50 fw-lighter" id="@item.Id" href="/" @onclick="args=>goSearch(item.Id.ToString(), item.Name, args)" data-mdb-dismiss="modal">@item.Name</NavLink>
+                        </li>
+                    }
+                }
+                </ul>
+            </div>
+            <div class="modal-footer d-flex justify-content-center align-items-center">
+                <button type="button"
+                        class="btn-close"
+                        data-mdb-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Body
+
+@*<nav class="navbar fixed-bottom navbar-dark bg-dark">*@
+<nav class="navbar fixed-bottom navbar-light bg-light">
+    <div class="container-fluid">
+        <div class="col-4">
+            <button type="button" class="btn btn-light btn-lg fw-lighter btn-block" data-mdb-ripple-color="dark" @onclick="goHome">
+                <i class="mi mi-HomeSolid d-block"></i> Home
+            </button>
+        </div>
+        <div class="col-4">
+            <button type="button" class="btn btn-light btn-lg fw-lighter btn-block" data-mdb-ripple-color="dark" @onclick="goCollab">
+                <i class="mi mi-MyNetwork d-block"></i> Collab
+            </button>
+        </div>
+        <div class="col-4">
+                <button type="button" class="btn btn-light btn-lg fw-lighter btn-block" data-mdb-ripple-color="dark" @onclick="goLogin">
+                <i class="mi mi-ContactSolid d-block"></i> Account
+            </button>
+        </div>
+    </div>
+</nav>
+
+}
+
+@code {
+    bool isPlayed = true;
+    List<SettingsResponseModel> _Industry;
+    bool isLogin = false;
+    string _IndustryId = "";
+    string _Name = "All Categories";
+    public string IndustryTypeId = "2767c68a-8da6-46cf-00ab-08db66b7e9a1";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _Industry = await AppService.FilterBy(IndustryTypeId);
+    }
+
+    private async void goHome()
+    {
+        await Task.Delay(1);
+        Navigation.NavigateTo("/");
+    }
+
+    private void donePlaying()
+    {
+        isPlayed = true;
+    }
+
+    private async void goLogin()
+    {
+        string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        {
+            var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
+
+            var handler = new JwtSecurityTokenHandler();
+            var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
+            LoginSetting.LoginSecureStorage = userBasicDetail;
+
+            Navigation.NavigateTo("/account");
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private async void goCollab()
+    {
+        string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        {
+            var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
+
+            var handler = new JwtSecurityTokenHandler();
+            var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
+            LoginSetting.LoginSecureStorage = userBasicDetail;
+
+            Navigation.NavigateTo("/collab");
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private async Task goSearch(string id, string name, MouseEventArgs args)
+    {
+        await Task.Delay(1);
+        Navigation.NavigateTo("/search/" + id + "/" + name);
+    }
+}

@@ -1,0 +1,649 @@
+﻿@page "/influencer/{influencerId?}/{orderId?}"
+@using InfluencerAPI.Models.OrdersDTO;
+@using InfluencerApp.Model.Influencer;
+@using InfluencerApp.Model.Login;
+@using InfluencerApp.Model.Master;
+@using InfluencerApp.Model.Order;
+@using InfluencerApp.Services;
+@using Newtonsoft.Json;
+@using System.IdentityModel.Tokens.Jwt;
+@using Microsoft.AspNetCore.Components;
+@using System.Net.Http.Json;
+@using System.Net.Http.Headers;
+@using Stripe;
+@inject NavigationManager Navigation
+@inject IInfluencerService InfluencerService;
+@inject IOrderService OrderService;
+@inject IAppService AppService;
+
+<div class="header-space"></div>
+
+<EditForm Model="@_OrderModelRequest">
+
+<div class="card bg-light">
+    <div class="w-100 bg-light"
+        style="
+                height: 10rem;
+                border-top-left-radius: 2px;
+                border-top-right-radius: 2px;
+        "></div>
+    <div class="d-flex justify-content-center" style="margin-top: -5.5rem;">
+        <img class="img-fluid rounded-circle" style="width: 10rem; height: 10rem;"
+            src="https://mdbootstrap.com/img/Photos/Others/men.jpg"
+            alt="Card image" />
+    </div>
+    <div class="card-body bg-light px-3 py-2 h-100 text-center">
+        <div class="d-flex justify-content-center align-items-center">
+            @if (_InfluencerViewModel.GenderId.ToString() == "505b1006-cba6-4139-97df-cbe10b5cfc26")
+            {
+                <i class="fas fa-mars pe-2 text-muted"></i>
+            }
+            else
+            {
+                <i class="fas fa-venus pe-2 text-muted"></i>
+            }
+            <h5 class="text-black-50 fw-lighter my-auto">@_InfluencerViewModel.Name</h5>
+        </div>
+        <h5 class="small text-muted fw-lighter pt-2">@_InfluencerViewModel.Industry</h5>
+        <div class="d-flex justify-content-center">
+            <i class="fas fa-quote-left text-muted small"></i>
+            <h6 class="small text-muted fw-lighter ps-1">@_InfluencerViewModel.Description</h6>
+        </div>
+        <div class="d-flex justify-content-center align-items-center">
+            @*<i class="text-muted mi mi-tumblr small fw-lighter text-black"></i>
+            <i class="text-muted mi mi-instagram small fw-lighter mx-3" style="color: #E1306C;"></i>
+            <i class="text-muted mi mi-snapchat-ghost small fw-lighter" style="color: #Fffc00;"></i>*@
+            <i class="mi mi-tumblr small fw-lighter"></i>
+            <i class="text-danger mi mi-instagram small fw-lighter mx-3"></i>
+            <i class="text-warning mi mi-snapchat-ghost small fw-lighter"></i>
+        </div>
+    </div>
+
+    <section>
+        <!-- Tabs navs -->
+        <ul class="nav nav-tabs nav-fill mb-3" id="ex-2" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link bg-light text-muted active"
+                    id="ex-2-tab-1"
+                    data-mdb-toggle="pill"
+                    href="#ex-2-tabs-1"
+                    role="tab"
+                    aria-controls="pills-1"
+                    aria-selected="true">Services</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link text-muted"
+                    id="ex-2-tab-2"
+                    data-mdb-toggle="pill"
+                    href="#ex-2-tabs-2"
+                    role="tab"
+                    aria-controls="pills-2"
+                    aria-selected="false">Collab</a>
+            </li>
+        </ul>
+        <!-- Tabs navs -->
+        <!-- Tabs content-->
+        <div class="tab-content" id="ex-2-content">
+            <div class="tab-pane fade show active"
+                    id="ex-2-tabs-1"
+                    role="tabpanel"
+                aria-labelledby="pills-1-tab">
+
+                @if (_ServiceViewModel is not null)
+                {
+                    @foreach (var item in _ServiceViewModel)
+                    {
+                        if (item.TypeId.ToString().ToUpper() == settingTypeId.ToUpper())
+                        {
+                            <div class="card hover-shadow m-3">
+                                <div class="d-flex g-0">
+                                    <div class="col-9 pt-2 ps-3 h-100">
+                                        <h6 class="fw-lighter">@item.ServiceSetting</h6>
+                                        <div class="d-flex">
+                                            <h6 class="text-muted small fw-lighter">AED</h6>&nbsp;
+                                                <h6 class="fw-lighter">@item.Amount</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-3 pe-1 py-1 d-flex justify-content-end align-items-center">
+                                        <div class="form-check form-switch">
+                                            @if (_DetailModel.ToList().Where(b => b.ServiceTypeId == item.ServiceSettingId).Count() > 0)
+                                                {
+                                                    <input class="form-check-input"
+                                                    @onchange="
+                                                        args=>serviceModify(
+                                                            item.ServiceSettingId.ToString(),
+                                                            item.TypeId.ToString(),
+                                                            item.Amount,
+                                                            args
+                                                        )" checked
+                                                           type="checkbox" />
+                                                }
+                                            else
+                                            {
+                                                <input class="form-check-input"
+                                                    @onchange="
+                                                        args=>serviceModify(
+                                                            item.ServiceSettingId.ToString(),
+                                                            item.TypeId.ToString(),
+                                                            item.Amount,
+                                                            args
+                                                        )"
+                                                    type="checkbox"  />
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+
+                @if (_ServiceViewModel is not null)
+                {
+                    <h6 class="ms-3 text-muted small fw-lighter">Add-Ons: </h6>
+                    @foreach (var item in _ServiceViewModel)
+                    {
+                        if (item.TypeId.ToString().ToUpper() != settingTypeId.ToUpper())
+                        {
+                            <div class="card hover-shadow m-3">
+                                <div class="d-flex g-0">
+                                    <div class="col-9 pt-2 ps-3 h-100">
+                                        <h6 class="fw-lighter">@item.ServiceSetting</h6>
+                                        <div class="d-flex">
+                                            <h6 class="text-muted small fw-lighter">AED</h6>&nbsp;
+                                            <h6 class="fw-lighter">@item.Amount</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-3 pe-1 py-1 d-flex justify-content-end align-items-center">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input"
+                                            @onchange="
+                                                args=>serviceModify(
+                                                    item.ServiceSettingId.ToString(),
+                                                    item.TypeId.ToString(),
+                                                    item.Amount,
+                                                    args
+                                                )"
+                                                    type="checkbox" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+                @*
+                <div class="card hover-shadow mx-3 mb-3">
+                    <div class="d-flex g-0">
+                        <div class="col-9 pt-2 ps-3 h-100">
+                            <h6 class="fw-lighter">Company Visit</h6>
+                            <div class="d-flex">
+                                <h6 class="text-muted small fw-lighter">AED</h6>
+                                <h6 class="ps-1 fw-lighter">1500</h6>
+                            </div>
+                        </div>
+                        <div class="col-3 pe-1 py-1 d-flex justify-content-end align-items-center">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input border" type="checkbox" />
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+
+                <div class="d-flex align-items-center ms-3">
+                    <h6 class="my-auto text-muted small fw-lighter">Schedule: </h6>
+                    @*<i class="my-auto ms-2 mi mi-Add"></i>*@
+                </div>
+                <div class="card hover-shadow mx-3 mb-3 mt-2">
+                    <div class="d-flex g-0">
+                        <div class="col-10 ps-3 my-2 h-100">
+                            <div class="row">
+                                <div class="col-3 my-auto">
+                                    <h6 class="text-muted small fw-lighter my-auto">Date</h6>
+                                </div>
+                                <div class="col-9">
+                                    <input type="date" class="form-control form-control-sm text-muted" @attributes="@restDayAttributes" @onchange="@resetTimeType" onkeydown="return false;" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-3 my-auto">
+                                    <h6 class="text-muted small fw-lighter my-auto">Time</h6>
+                                </div>
+                                <div class="col-9 pt-2">
+                                    
+                                    @*<div class="form-outline">
+                                        <input class="form-control"
+                                                list="datalistOptions"
+                                                id="exampleDataList"
+                                                placeholder="Type to search..." />
+                                        <label for="exampleDataList" class="form-label">Datalist example</label>
+                                        <datalist id="datalistOptions">
+                                            <option value="San Francisco"></option>
+                                            <option value="New York"></option>
+                                            <option value="Seattle"></option>
+                                            <option value="Los Angeles"></option>
+                                            <option value="Chicago"></option>
+                                        </datalist>
+                                    </div>*@
+                                    <select class="form-control form-control-sm text-muted" @bind="_OrderModelRequest.TimeId">
+                                    @if (_timeTypeSetup is null || !_timeTypeSetup.Any())
+                                    {
+                                        <option value="0">No Time Type Enabled.</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="0">-- Select Time --</option>
+                                        @foreach (var item in _timeTypeSetup)
+                                        {
+                                            var restDay = _RestDayModel.FirstOrDefault(bv => bv.Year == todayYear && bv.Month == todayMonth && bv.Day == todayDay && bv.TimeId == item.Id);
+                                            if (restDay == null)
+                                            {
+                                                <option value="@item.Id">@item.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option disabled value="@item.Id">@item.Name (Rest Day)</option>
+                                            }
+                                        }
+                                    }
+                                    </select>
+
+                                    @*<select class="form-control form-control-sm text-muted">
+                                        <option value="0">-- Time --</option>
+                                        <option value="1">Morning</option>
+                                        <option disabled value="2">Afternoon (Rest Day)</option>
+                                    </select>*@
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-2 pe-3 py-1 d-flex justify-content-end align-items-center">
+                            @*<i class="mi mi-Delete text-muted"></i>*@
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center ms-3">
+                    <h6 class="my-auto text-muted small fw-lighter">Requirements: </h6>
+                        <i class="my-auto ms-2 mi mi-Add" @onclick="addTarget"></i>
+                </div>
+
+                @if (_TargetViewModel is not null)
+                {
+                    @foreach (var item in _TargetViewModel)
+                    {
+                        <div class="card hover-shadow mx-3 mb-3 mt-2">
+                            <div class="d-flex g-0">
+                                <div class="col-10 ps-3 my-2 h-100">
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <h6 class="text-muted small fw-lighter">Details</h6>
+                                        </div>
+                                        <div class="col-9">
+                                            <textarea class="form-control form-control-sm" rows="4" @bind="item.Description" style="resize: none;" placeholder="Requirement details"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-3 my-auto">
+                                            <h6 class="text-muted small fw-lighter my-auto">File</h6>
+                                        </div>
+                                        <div class="col-9 pt-2">
+                                            <h6 class="text-muted small fw-lighter">@item.FilePath</h6>
+                                            <input class="form-control form-control-sm text-muted" bind="@item.FilePath" type="file">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-2 pe-3 py-1 d-flex justify-content-end align-items-center">
+                                        <i class="mi mi-Delete text-muted" @onclick="args=> deleteTarget(item, args)"></i>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                    <div class="text-center p-4">
+                        <button type="button" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" style="background-color: #b91d1d;" @onclick="args=>saveOrder(_OrderModelRequest, _DetailModel, _TargetViewModel, args)"><i class="mi mi-MyNetwork"></i> Book Now</button>
+                    </div>
+            </div>
+            <div class="tab-pane fade" id="ex-2-tabs-2" role="tabpanel" aria-labelledby="pills-2-tab">
+                <section class="d-flex justify-content-center p-3 bg-light">
+                    <div class="input-group form-outline form-white">
+                        <i class="mi mi-Search trailing text-muted"></i>
+                        <input type="text" id="formWhite" class="form-control text-black-50" aria-describedby="basic-addon" />
+                        <label class="form-label small text-muted" for="formWhite">Search for Collaborator's Name</label>
+                    </div>
+                </section>
+                @if (_OrderUserResponse is not null)
+                {
+                    @foreach (var item in _OrderUserResponse)
+                    {
+                        <div class="card hover-shadow rounded-0 m-3 mb-5">
+                            <div class="d-flex g-0">
+                                <div class="col-3 text-center py-1">
+                                    <img src="https://mdbootstrap.com/img/Photos/dark-theme-demo/img1.jpg"
+                                            class="rounded-circle"
+                                            style="width: 4.5rem; height: 4.5rem;"
+                                            alt="..." />
+                                </div>
+                                <div class="col-7">
+                                    <div class="card-body p-1 pt-1 h-100">
+                                        <h6 class="fw-lighter">@item.Name</h6>
+                                        <h6 class="fw-lighter text-muted small">@item.Industry</h6>
+                                    </div>
+                                </div>
+                                <div class="col-2 d-flex justify-content-center align-items-center text-muted">
+                                        <i class="mi mi-Heart text-muted"></i>
+                                </div>
+                            </div>
+                            @*<a href="#!">
+                                <div class="mask"></div>
+                            </a>*@
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <!-- Tabs content-->
+    </section>
+</div>
+
+@*    <div class="container">
+        <div class="form-group" style="width:10em;height:10em;">
+            <label>Image</label> : @_InfluencerViewModel.ImagePath
+        </div>
+        <div class="form-group mt-2">
+            <label>Influencer Name</label> : @_InfluencerViewModel.Name
+        </div>
+        <div class="form-group mt-2">
+            <label>Nationality</label> : @_InfluencerViewModel.Nationality
+        </div>
+        <div class="form-group mt-2">
+            <label>Bio</label> : @_InfluencerViewModel.Description
+        </div>
+        <div class="form-group mt-2">
+            <label>Industry</label> : @_InfluencerViewModel.Industry
+        </div>
+        <div class="form-group mt-2">
+            <label>Social Media Links:</label>
+        </div>
+        <div class="form-group mt-2">
+            <label>Recent Projects:</label>
+        </div>
+        <div class="d-flex flex-row mt-2">
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-primary" type="submit">
+                    <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                    Book Now!
+                </button>
+                <NavLink class="nav-link text-center" href="/">
+                    <span>Back</span>
+                </NavLink>
+            </div>
+        </div>
+    </div>*@
+</EditForm>
+
+<div class="footer-space"></div>
+
+@code {
+    [Parameter]
+    public string influencerId { get; set; }
+    [Parameter]
+    public string orderId { get; set; } = "";
+
+
+    //[Inject]
+    //public HttpClient HttpClient { get; set; } = default!;
+
+    //[Inject]
+    //public IJSRuntime JsRuntime { get; set; } = default!;
+
+    private List<InfluencerAPI.Models.OrdersDTO.Product>? _products;
+
+    List<ServiceViewModel> _ServiceViewModel;
+    List<SettingsResponseModel> _timeTypeSetup;
+    List<TimeViewModel> _TimeViewModel;
+    List<RestDayModel> _RestDayModel;
+    List<TargetViewModel> _TargetViewModel = new();
+    List<DetailModel> _DetailModel = new();
+    List<OrderUserResponse> _OrderUserResponse = new();
+
+    LoginModel _LoginModel = new();
+    InfluencerViewModel _InfluencerViewModel = new();
+    TargetViewModel targetViewModel;
+    //OrderViewModel _OrderViewModel = new();
+    OrderModelRequest _OrderModelRequest = new();
+
+    Dictionary<string, object> restDayAttributes = new();
+
+    private string _spinnerClass = "";
+    private string settingTypeId = "AD876D8D-F3AB-4CC4-9254-19C595042DA5";
+    private string timeTypeId = "9A89ACE8-9AA3-4767-A25A-BFEAC9CAE8DE";
+    private string minDate = (DateTime.Now).ToString("yyyy-MM-dd");
+    private int todayYear = DateTime.Now.Year;
+    private int todayMonth = DateTime.Now.Month;
+    private int todayDay = DateTime.Now.Day;
+
+    private async void saveOrder(OrderModelRequest omr, List<DetailModel> dm, List<TargetViewModel> tvm, MouseEventArgs args)
+    {
+        //await App.Current.MainPage.DisplayAlert("Success", "Record added successfully!", "OK");
+        //var response = await LoginService.Create(_RegisterModel);
+        var response = await OrderService.CreateOrder(omr);
+
+        if (!string.IsNullOrWhiteSpace(response))
+        {
+            var userBasicDetail = JsonConvert.DeserializeObject<MainResponseModel>(response);
+
+            Guid id = new Guid(userBasicDetail.Content.ToString());
+
+            dm.ToList().ForEach(b => b.Id = id);
+            tvm.ToList().ForEach(b => b.Id = id);
+
+            await OrderService.CreateDetail(dm);
+            await OrderService.CreateTarget(tvm);
+
+            await Task.Delay(1);
+            _products = await OrderService.CheckoutOrderById(id.ToString());
+            await Task.Delay(1);
+            var url = "https://localhost:7247/order/" + id.ToString();
+            await JSRuntime.InvokeAsync<object>("open", url, "_blank");
+            //await OnClickBtnBuyNowAsync(_products);
+            //Navigation.NavigateTo("/order");
+            //await App.Current.MainPage.DisplayAlert("Success", "Record added successfully!", "OK");
+
+            await Task.Delay(1);
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Failed", "Adding record failed!", "OK");
+        }
+
+        //var response2 = await OrderService.CreateDetail(dm, id);
+        //var response3 = await OrderService.CreateTarget(tvm);
+        //_spinnerClass = "spinner-border spinner-border-sm";
+        //Navigation.NavigateTo("/");
+        await Task.Delay(1);
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        _InfluencerViewModel = await InfluencerService.GetInfluencerById(influencerId);
+        _ServiceViewModel = await InfluencerService.GetInfluencerServiceById(influencerId);
+        _RestDayModel = await InfluencerService.GetInfluencerRestDayById(influencerId);
+        _timeTypeSetup = await AppService.FilterBy(timeTypeId);
+        _TimeViewModel = await InfluencerService.GetInfluencerTimeTypeById(influencerId);
+        _OrderUserResponse = await OrderService.GetUserById(influencerId);
+        _products = await OrderService.CheckoutOrderById(orderId);
+
+        foreach (var item in _TimeViewModel)
+        {
+            _timeTypeSetup.RemoveAll(b => b.Id == item.TimeSettingId);
+        }
+
+        restDayAttributes.Add("value", minDate);
+        restDayAttributes.Add("min", minDate);
+
+        string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        {
+            var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
+
+            var handler = new JwtSecurityTokenHandler();
+            var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
+            LoginSetting.LoginSecureStorage = userBasicDetail;
+
+            if (jsontoken.ValidTo < DateTime.UtcNow)
+            {
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                _OrderModelRequest.UserId = LoginSetting.LoginSecureStorage.UserId;
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo("/login");
+        }
+        _OrderModelRequest.Date = minDate.ToString();
+        _OrderModelRequest.InfluencerId = new Guid(influencerId);
+
+        if (orderId is not null)
+        {
+            _OrderModelRequest = await OrderService.ViewOrder(orderId);
+            _DetailModel = await OrderService.ViewOrderDetail(orderId);
+            _TargetViewModel = await OrderService.ViewOrderTarget(orderId);
+        }
+        else
+        {
+
+            var TargetViewModel_ = new TargetViewModel()
+                {
+                    Id = Guid.NewGuid(),
+                    Description = "",
+                    FilePath = ""
+                };
+            _TargetViewModel.Add(TargetViewModel_);
+        }
+    }
+
+    private async Task resetTimeType(ChangeEventArgs args)
+    {
+        _OrderModelRequest.Date = args.Value.ToString();
+        todayYear = Convert.ToInt32(args.Value.ToString().Substring(0, 4));
+        todayMonth = Convert.ToInt32(args.Value.ToString().Substring(5, 2));
+        todayDay = Convert.ToInt32(args.Value.ToString().Substring(8, 2));
+        await Task.Delay(1);
+    }
+
+    private async Task serviceModify(string ServiceTypeId, string TypeId, double Amount, ChangeEventArgs args)
+    {
+        if (_DetailModel.Where(b => b.ServiceTypeId == new Guid(ServiceTypeId)).Any())
+        {
+            _DetailModel.RemoveAll(b => b.ServiceTypeId == new Guid(ServiceTypeId));
+        }
+        else
+        {
+            _DetailModel.Add(new DetailModel { Id = Guid.NewGuid(), TypeId = new Guid(TypeId), ServiceTypeId = new Guid(ServiceTypeId), Amount = Amount });
+        }
+        await Task.Delay(1);
+    }
+
+    private async Task addTarget(MouseEventArgs args)
+    {
+        var TargetViewModel_ = new TargetViewModel()
+        {
+            Id = Guid.NewGuid(),
+            Description = "",
+            FilePath = ""
+        };
+        _TargetViewModel.Add(TargetViewModel_);
+        await Task.Delay(1);
+    }
+
+    private async Task deleteTarget(TargetViewModel _targetViewModel, MouseEventArgs args)
+    {
+        _TargetViewModel.RemoveAll(b => b.Id == _targetViewModel.Id);
+        await Task.Delay(1);
+    }
+
+    //[Inject]
+    //public HttpClient _HttpClient { get; set; } = default!;
+
+    [Inject]
+    IJSRuntime JSRuntime { get; set; }
+
+    private async Task OnClickBtnBuyNowAsync(List<InfluencerAPI.Models.OrdersDTO.Product> product)
+    {
+        var _HttpClient = new HttpClient();
+        var response = await _HttpClient.PostAsJsonAsync($"{APIs._baseUrl}checkout", product);
+
+        response.EnsureSuccessStatusCode();
+
+        var responseBody = await response.Content.ReadAsStringAsync();
+
+        var checkoutOrderResponse = JsonConvert.DeserializeObject<CheckoutOrderResponse>(responseBody);
+
+        // Opens up Stripe.
+        await JSRuntime.InvokeVoidAsync("checkout", checkoutOrderResponse.PubKey, checkoutOrderResponse.SessionId);
+    }
+
+
+    //string myCustomer;
+    //string getChargedId;
+    //string refundID;
+
+    //private async Task OnClickBtnBuyNowAsync(List<InfluencerAPI.Models.OrdersDTO.Product> product)
+    //{
+    //    await Task.Delay(1);
+
+    //    StripeConfiguration.SetApiKey("sk_test_51NM3cnJ9ZqXU0t2E83HdidyKJkTGQLJX5wcWDh33edqP0i0bM8TvulkpVFbWcv9jilZ2BDWHaPSWU228FRaKqe1k00aH8xRU6o");
+
+
+
+
+    //    //Stripe.TokenCardOptions stripCard = new Stripe.TokenCardOptions();
+    //    //stripCard.Number = "4242424242424242";
+    //    //stripCard.ExpMonth = "2034";
+    //    //stripCard.ExpYear = "12";
+    //    //stripCard.Cvc = "567";
+
+    //    //Stripe.TokenCreateOptions token = new Stripe.TokenCreateOptions();
+    //    //token.Card = stripCard;
+    //    //Stripe.TokenService serviceToken = new Stripe.TokenService();
+    //    //Stripe.Token newToken = serviceToken.Create(token);
+
+    //    //var options = new SourceCreateOptions
+    //    //{
+    //    //    Type = SourceType.Card,
+    //    //    Currency = "usd",
+    //    //    Token = newToken.Id
+    //    //};
+
+    //    //var service = new SourceService();
+    //    //Source source = service.Create(options);
+
+    //    Stripe.CustomerCreateOptions myCustomer = new Stripe.CustomerCreateOptions()
+    //    {
+    //        Name = "Ben",
+    //        Email = "ben@gmai.com",
+    //        Description = "Customer for ben"
+    //    };
+    //    var customerService = new Stripe.CustomerService();
+    //    Stripe.Customer stripeCustomer = customerService.Create(myCustomer);
+
+    //    Stripe.EphemeralKeyCreateOptions ephemeralKey = new Stripe.EphemeralKeyCreateOptions();
+    //    ephemeralKey.Customer = stripeCustomer.Id;
+    //    //Stripe.EphemeralKey key = EphemeralKeyService.Create(ephemeralKey);
+
+    //    //var chargeOptions = new Stripe.ChargeCreateOptions
+    //    //{
+    //    //    Amount = 50,
+    //    //    Currency = "USD",
+    //    //    ReceiptEmail = "bcvolante@gmail.com",
+    //    //    Customer = stripeCustomer.Id,
+    //    //    Source = source.Id
+    //    //};
+
+    //    //var service1 = new Stripe.ChargeService();
+    //    //Stripe.Charge charge = service1.Create(chargeOptions);
+    //}
+}
