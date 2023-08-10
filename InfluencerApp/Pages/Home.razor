@@ -659,6 +659,8 @@
     string _InfluenderId = "a1346f7b-4d8e-486b-8976-076e1e088522";
     public string IndustryTypeId = "2767C68A-8DA6-46CF-00AB-08DB66B7E9A1";
     bool isLogin = false;
+    String uti = "F6D62DCB-BD13-4002-8668-8F2544B65B87";
+    private bool isInfluencer = false;
 
     private async void logIn()
     {
@@ -673,7 +675,7 @@
         await Task.Delay(1);
         if (isLogin == true)
         {
-            NavManager.NavigateTo("influencer/" + id + "/");
+            NavManager.NavigateTo("/influencer/" + id + "/");
         }
         else
         {
@@ -693,6 +695,15 @@
             var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
             LoginSetting.LoginSecureStorage = userBasicDetail;
             isLogin = true;
+            if (LoginSetting.LoginSecureStorage.UserTypeId == new Guid(uti))
+            {
+                isInfluencer = true;
+                //NavManager.NavigateTo("/collab");
+            }
+            else
+            {
+                isInfluencer = false;
+            }
         }
 
         _InfluencerModel = await InfluencerService.GetInfluencerByRanking();

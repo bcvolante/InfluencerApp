@@ -1,6 +1,7 @@
 ﻿@page "/collab"
 @using InfluencerApp.Model.Login;
 @using InfluencerApp.Model.Order;
+@using InfluencerApp.Model.Users;
 @using InfluencerApp.Services;
 @using Newtonsoft.Json;
 @using System.IdentityModel.Tokens.Jwt;
@@ -17,7 +18,7 @@
 		@*@bind-value="_FinalInfluencerName" @oninput="searchName" @bind-value:event="onchange"*@
 		class="form-control text-black-50"
 			   aria-describedby="basic-addon" />
-		<label class="form-label text-muted" for="formWhite">Search for influencer</label>
+			<label class="form-label text-muted" for="formWhite">Search for @searchFor</label>
 	</div>
 </section>
 
@@ -25,8 +26,8 @@
 {
 	@foreach (var item in _OrderResponse)
 	{
-		<div class="card hover-shadow rounded-0 m-3" @onclick="args=>showInfo(item.InfluencerId.ToString(), args, 1, item.Id.ToString())">
-			<div class="d-flex g-0">
+			<div class="card hover-shadow rounded-0 m-3" style="background-color:rgba(250, 250, 90, 0.8);" @onclick="args=>showInfo(item.InfluencerId.ToString(), args, 1, item.Id.ToString())">
+				<div class="d-flex g-0" style="background-color:#F6BE00;">
 				<div class="col-4">
 					<img src="https://mdbootstrap.com/img/Photos/dark-theme-demo/img1.jpg"
 						 class="w-100"
@@ -36,7 +37,7 @@
 					<div class="card-body p-2 h-100">
 						<label class="small fw-lighter">@item.Name</label>
 						<div class="d-flex position-absolute align-items-center bottom-0 pb-2">
-							<img src="https://mdbootstrap.com/img/Photos/Avatars/img (29).jpg"
+							<img src="@item.ImagePath"
 								 class="rounded-circle"
 								 height="30"
 								 alt=""
@@ -68,6 +69,9 @@
 @code {
 	List<OrderResponse> _OrderResponse = new();
 	string _userId = "";
+	String uti = "F6D62DCB-BD13-4002-8668-8F2544B65B87";
+	string searchFor = "";
+	private bool isInfluencer = false;
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -81,14 +85,19 @@
 			var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
 			LoginSetting.LoginSecureStorage = userBasicDetail;
 
-			if (jsontoken.ValidTo < DateTime.UtcNow)
+			if (LoginSetting.LoginSecureStorage.UserTypeId == new Guid(uti))
 			{
-				Navigation.NavigateTo("/login");
+				isInfluencer = true;
+				_userId = LoginSetting.LoginSecureStorage.InfluencerId.ToString();
+				_OrderResponse = await OrderService.GetOrderByInfluencerId(_userId);
+				searchFor = "Customer";
 			}
 			else
 			{
+				isInfluencer = false;
 				_userId = LoginSetting.LoginSecureStorage.UserId.ToString();
 				_OrderResponse = await OrderService.GetOrderById(_userId);
+				searchFor = "Influencer";
 			}
 		}
 		else
@@ -99,6 +108,7 @@
 
 	private void showInfo(string id, MouseEventArgs args, int forInfo, string orderId)
 	{
-		Navigation.NavigateTo("influencer/" + id + "/" + orderId);
+		var url = "/influencer/" + id + "/" + orderId;
+		Navigation.NavigateTo(url);
 	}
 }

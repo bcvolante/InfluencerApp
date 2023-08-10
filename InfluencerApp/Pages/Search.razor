@@ -211,6 +211,8 @@
 	string _FinalNationality = "";
 	string _FinalInfluencerName = "";
 	bool isLogin = false;
+	String uti = "F6D62DCB-BD13-4002-8668-8F2544B65B87";
+	private bool isInfluencer = false;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -224,6 +226,14 @@
 			var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
 			LoginSetting.LoginSecureStorage = userBasicDetail;
 			isLogin = true;
+			if (LoginSetting.LoginSecureStorage.UserTypeId != new Guid(uti))
+			{
+				isInfluencer = false;
+			}
+			else
+			{
+				isInfluencer = true;
+			}
 		}
 
 
@@ -239,7 +249,14 @@
 		await Task.Delay(1);
 		if (isLogin == true)
 		{
-			Navigation.NavigateTo("influencer/" + id);
+			if (isInfluencer == false)
+			{
+				Navigation.NavigateTo("/influencer/" + id);
+			}
+			else
+			{
+				Navigation.NavigateTo("/collab");
+			}
 		}
 		else
 		{

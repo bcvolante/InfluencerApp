@@ -12,5 +12,9 @@ namespace InfluencerApp.Model.Order
         public Guid? InfluencerId { get; set; }
         public string Date { get; set; }
         public Guid? TimeId { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsApproved { get; set; }
+        public string Status { get; set; }
+        public string? Remarks { get; set; }
     }
 }

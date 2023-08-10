@@ -10,7 +10,18 @@
 @if (isPlayed == false)
 {
     <div style="background-color: #F0F0F0;height:100vh;width:100vw;">
-    <video autoplay muted playsinline class="slideContent" style="
+        <img src="videos/S1R-v3.0m.gif"
+             style="
+
+        height: 100vh;
+        width: auto;
+        margin: 0 auto;
+        overflow: hidden;
+        justify-content: center;
+        display: flex;
+        align-items: center;
+        " />
+@*    <video autoplay muted playsinline class="slideContent" style="
        
         height: 100vh;
         width: auto;
@@ -22,7 +33,7 @@
         " @onended="donePlaying">
             <source src="videos/S1R-v2.1.mp4" type="video/mp4">
         Your browser does not support HTML5 video.
-    </video>
+    </video>*@
     </div>
 }
 else
@@ -40,21 +51,26 @@ else
         <div class="mx-auto d-flex justify-content-center align-items-center text-black-50 fw-lighter small">
             @if (_Industry != null)
             {
-                var i = 1;
-                @foreach (var item in _Industry)
+                if (isInfluencer == false)
                 {
-                    if (i <= 2)
+                    var i = 1;
+                    @foreach (var item in _Industry)
                     {
-                        <NavLink class="nav-link mx-auto " id="@item.Id" href="@($"/search/{item.Id}")" @onclick="args=>goSearch(item.Id.ToString(), item.Name, args)">@item.Name</NavLink>
+                        if (i <= 2)
+                        {
+                            <NavLink class="nav-link mx-auto " id="@item.Id" href="@($"/search/{item.Id}")" @onclick="args=>goSearch(item.Id.ToString(), item.Name, args)">@item.Name</NavLink>
+                        }
+                        i++;
                     }
-                    i++;
                 }
             }
-            <NavLink class="nav-link mx-auto" href="/"
-                        data-mdb-toggle="modal"
-                        data-mdb-target="#staticBackdrop">
-                Categories <i class="fas fa-chevron-down mx-1"></i>
-            </NavLink>
+            @if(isInfluencer == false) {
+                <NavLink class="nav-link mx-auto" href="/"
+                            data-mdb-toggle="modal"
+                            data-mdb-target="#staticBackdrop">
+                    Categories <i class="fas fa-chevron-down mx-1"></i>
+                </NavLink>
+            }
         </div>
     </div>
 </nav>
@@ -128,16 +144,61 @@ else
     string _IndustryId = "";
     string _Name = "All Categories";
     public string IndustryTypeId = "2767c68a-8da6-46cf-00ab-08db66b7e9a1";
+    String uti = "F6D62DCB-BD13-4002-8668-8F2544B65B87";
+    bool isInfluencer = true;
 
     protected override async Task OnInitializedAsync()
     {
         _Industry = await AppService.FilterBy(IndustryTypeId);
+        await Task.Delay(6000);
+        isPlayed = true;
+
+        string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        {
+            isLogin = true;
+            if (LoginSetting.LoginSecureStorage.UserTypeId == new Guid(uti))
+            {
+                isInfluencer = true;
+            }
+            else
+            {
+                isInfluencer = false;
+            }
+        }
+        else
+        {
+            isLogin = false;
+        }
     }
 
     private async void goHome()
     {
         await Task.Delay(1);
-        Navigation.NavigateTo("/");
+
+        string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        {
+            isLogin = true;
+            if (LoginSetting.LoginSecureStorage.UserTypeId == new Guid(uti))
+            {
+                isInfluencer = true;
+                Navigation.NavigateTo("/collab");
+            }
+            else
+            {
+                isInfluencer = false;
+                Navigation.NavigateTo("/");
+            }
+        }
+        else
+        {
+            isLogin = false;
+            Navigation.NavigateTo("/");
+        }
+
     }
 
     private void donePlaying()

@@ -16,6 +16,38 @@
 <EditForm Model="@_RegisterModel" OnValidSubmit="register">
     <DataAnnotationsValidator />
         <div class="container text-black-50">
+
+            <div class="w-100 bg-light"
+                 style="
+                        height: 10rem;
+                        border-top-left-radius: 2px;
+                        border-top-right-radius: 2px;
+                    "></div>
+            <div class="d-flex justify-content-center" style="margin-top: -5.5rem;">
+                <img class="img-fluid rounded-circle" style="width: 10rem; height: 10rem;"
+                     src="@_RegisterModel.ImagePath"
+                     alt="Card image" />
+            </div>
+
+
+
+            <section class="d-flex justify-content-center p-3">
+                <div class="container form-group">
+                    <label class="form-label text-muted" for="formWhite">Picture</label>
+                    <div class="input-group form-outline form-white">
+                        <i class="mi mi-Search trailing"></i>
+
+                        <InputFile OnChange="@LoadFiles" accept=".jpg,.jpeg,.png" id="formWhite" class="form-control text-black-50"
+                                   aria-describedby="basic-addon" />
+
+                        @* <input type="file" id="formWhite" accept=".jpg,.jpeg,.png" OnChange="@LoadFiles"
+                        @bind-value="_RegisterModel.ImagePath" class="form-control"
+                        aria-describedby="basic-addon" />*@
+                        <ValidationMessage For="@(()=>_RegisterModel.ImagePath)" />
+                    </div>
+                </div>
+            </section>
+
         <div class="form-group mt-2">
             <label>Email Address</label>
                 <input type="email" @bind-value="_RegisterModel.Email" class="form-control text-black-50" placeholder="Email Address" />
@@ -27,14 +59,7 @@
             <ValidationMessage For="@(()=>_RegisterModel.Password)" />
         </div>
 
-        <div class="form-group mt-2">
-            <label>Picture</label>
-                <input class="form-control text-black-50" placeholder="Profile Picture" @bind-value="_RegisterModel.ImagePath" />
-            @*<img src="@_RegisterModel.ImagePath" height="50" width="50" class="rounded-circle" />*@
-                <input type="file" class="form-control text-black-50" placeholder="Picture" />
-            @*<input type="file" @bind-value="_RegisterModel.ImagePath" class="form-control" placeholder="Profile Picture" />*@
-            @*<ValidationMessage For="@(()=>_RegisterModel.ImagePath)" />*@
-        </div>
+
         <div class="form-group mt-2">
             <label>User Type</label>
             <div>
@@ -116,11 +141,20 @@
             <label>Mobile Number</label>
                 <input @bind-value="_RegisterModel.Number" class="form-control text-black-50" placeholder="Mobile Number" />
             <ValidationMessage For="@(()=>_RegisterModel.Number)" />
-        </div>
+            </div>
+            <div class="form-group mt-2">
+                <label>Address</label>
+                <input @bind-value="_RegisterModel.Address" class="form-control text-black-50" placeholder="Address" />
+                <ValidationMessage For="@(()=>_RegisterModel.Address)" />
+            </div>
         <div class="d-flex flex-row mt-2">
-            <div class="d-flex justify-content-between">
+                <div class=" d-flex flex-row mt-2 justify-content-center align-items-center">
 
-                    <button type="submit" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" style="background-color: #b91d1d;"><i class="mi mi-Save"></i> Save</button>
+                    @if (isInfluencer == false)
+                    {
+                        <button type="submit" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" style="background-color: #b91d1d;"><i class="mi mi-Save"></i> Save</button>
+                    }
+                   
                     <button type="button" data-mdb-ripple-color="dark" class="btn btn-link text-dark fw-lighter mx-2 mi-4x" @onclick="SignOut"><i class="mi mi-Info d-block"></i> Logout</button>
 
                 @*<button class="btn btn-primary" type="submit">
@@ -143,11 +177,59 @@
 @code {
     RegisterModel _RegisterModel = new();
     LoginModel _LoginModel = new();
+    UserViewResponse _UserViewResponse = new();
     List<SettingsResponseModel> _UserType;
     List<SettingsResponseModel> _Industry;
     UserModel _UserModel = new();
     private string _spinnerClass = "";
     private Guid id;
+    Guid uti = new Guid("F6D62DCB-BD13-4002-8668-8F2544B65B87");
+
+    private List<IBrowserFile> loadedFiles = new();
+    private long maxFileSize = 1024 * 15;
+    private int maxAllowedFiles = 1;
+    private bool isLoading;
+    private string extensionname = "default";
+
+    private bool isInfluencer = false;
+
+    //InputFile Chnage event
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        isLoading = true;
+        loadedFiles.Clear();
+        foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
+        {
+            try
+            {
+                loadedFiles.Add(file);
+
+                //get the upload file extension.
+                extensionname = Path.GetExtension(file.Name);
+
+                var imagefiletypes = new List<string>() {
+                    ".png",".jpg",".jpeg"
+                };
+                if (imagefiletypes.Contains(extensionname))
+                {
+
+                    //resize the image and create the thumbnails
+                    var resizedFile = await file.RequestImageFileAsync(file.ContentType, 640, 480); // resize the image file
+                    var buf = new byte[resizedFile.Size]; // allocate a buffer to fill with the file's data
+                    using (var stream = resizedFile.OpenReadStream())
+                    {
+                        await stream.ReadAsync(buf); // copy the stream to the buffer
+                    }
+                    _RegisterModel.ImagePath = "data:image/png;base64," + Convert.ToBase64String(buf); // convert to a base64 string!!
+                }
+            }
+            catch (Exception ex)
+            {
+                await App.Current.MainPage.DisplayAlert("Oops", "Try again!", "OK");
+            }
+        }
+        isLoading = false;
+    }
 
     private async void register()
     {
@@ -165,7 +247,8 @@
                 ImagePath = _RegisterModel.ImagePath,
                 Number = _RegisterModel.Number,
                 IndustryId = _RegisterModel.IndustryId,
-                Size = _RegisterModel.Size
+                Size = _RegisterModel.Size,
+                Address = _RegisterModel.Address
             };
 
         _spinnerClass = "spinner-border spinner-border-sm";
@@ -173,7 +256,7 @@
         if (!string.IsNullOrWhiteSpace(response))
         {
             await App.Current.MainPage.DisplayAlert("Success", "Account successfully updated!", "OK");
-            Navigation.NavigateTo("/");
+            //Navigation.NavigateTo("/");
         }
         else
         {
@@ -204,6 +287,20 @@
             }
             else
             {
+                if (LoginSetting.LoginSecureStorage.UserTypeId != uti)
+                {
+                    isInfluencer = false;
+                    _UserViewResponse = await UserService.GetById(LoginSetting.LoginSecureStorage.UserId.ToString());
+                    _RegisterModel.ImagePath = _UserViewResponse.ImagePath;
+                    _RegisterModel.Address = _UserViewResponse.Address;
+                }
+                else
+                {
+                    isInfluencer = true;
+                    _RegisterModel.ImagePath = "https://mdbootstrap.com/img/Photos/Others/men.jpg";
+                    _RegisterModel.Address = "Influencer Address";
+                }
+
                 _RegisterModel.Email = LoginSetting.LoginSecureStorage.UserName;
                 _RegisterModel.Password = LoginSetting.LoginSecureStorage.Password;
                 id = LoginSetting.LoginSecureStorage.UserId;
@@ -211,7 +308,6 @@
                 _RegisterModel.FirstName = LoginSetting.LoginSecureStorage.FirstName;
                 _RegisterModel.LastName = LoginSetting.LoginSecureStorage.LastName;
                 _RegisterModel.Name = LoginSetting.LoginSecureStorage.Name;
-                _RegisterModel.ImagePath = LoginSetting.LoginSecureStorage.ImagePath;
                 _RegisterModel.Number = LoginSetting.LoginSecureStorage.Number;
                 _RegisterModel.IndustryId = LoginSetting.LoginSecureStorage.IndustryId;
                 _RegisterModel.Size = LoginSetting.LoginSecureStorage.Size;

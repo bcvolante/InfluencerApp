@@ -18,5 +18,6 @@ namespace InfluencerApp.Model.Login
         public string Number { get; set; }
         public Guid? IndustryId { get; set; }
         public int Size { get; set; }
+        public string Address { get; set; }
     }
 }

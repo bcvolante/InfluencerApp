@@ -11,5 +11,6 @@ namespace InfluencerApp.Services
     {
         public Task<UserModel> GetByEmail(string email);
         public Task<string> UpdateUsers(UpdateUserRequest _UpdateUserRequest);
+        public Task<UserViewResponse> GetById(string id);
     }
 }

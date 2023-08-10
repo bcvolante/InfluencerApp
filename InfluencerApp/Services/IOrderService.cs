@@ -16,10 +16,12 @@ namespace InfluencerApp.Services
 
 		public Task<List<OrderUserResponse>> GetUserById(string id);
         public Task<List<OrderResponse>> GetOrderById(string id);
+        public Task<List<OrderResponse>> GetOrderByInfluencerId(string id);
         public Task<List<Product>> CheckoutOrderById(string id);
         public Task<List<TargetViewModel>> ViewOrderTarget(string id);
         public Task<List<DetailModel>> ViewOrderDetail(string id);
         public Task<OrderModelRequest> ViewOrder(string id);
+        public Task<string> UpdateOrder(UpdateOrderRequest _UpdateOrderRequest);
 
 
 

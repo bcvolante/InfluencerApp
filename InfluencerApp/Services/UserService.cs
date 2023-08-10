@@ -57,5 +57,36 @@ namespace InfluencerApp.Services
             }
             return returnStr;
         }
+        public async Task<UserViewResponse> GetById(string id)
+        {
+            var returnResponse = new UserViewResponse();
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    var url = $"{APIs._baseUrl}{APIs.GetById}{id}";
+                    var apiResponse = await client.GetAsync(url);
+
+                    if (apiResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        var response = await apiResponse.Content.ReadAsStringAsync();
+                        var deserializeResponse = JsonConvert.DeserializeObject<MainResponseModel>(response);
+                        if (deserializeResponse.IsSuccess)
+                        {
+                            returnResponse = JsonConvert.DeserializeObject<UserViewResponse>(deserializeResponse.Content.ToString());
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string msg = ex.Message;
+            }
+            return returnResponse;
+        }
+
+
+
+        
     }
 }

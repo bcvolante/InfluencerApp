@@ -8,55 +8,9 @@
 @inject ILoginService LoginService;
 @inject IAppService AppService;
 
-@*
-
-<div id="intro" class="container-fluid bg-image shadow-2-strong">
-    <div class="container-fluid mask d-flex align-items-center h-100" style="background-color: rgba(0, 0, 0, 0.8);">
-        <div class="container-fluid">
-            <div class="row justify-content-center">
-                <div class="col-xl-5 col-md-8">
-                    <form class="bg-white rounded shadow-5-strong p-5">
-                        <!-- Email input -->
-                        <div class="form-outline mb-4">
-                            <input type="email" id="form1Example1" class="form-control" />
-                            <label class="form-label" for="form1Example1">Email address</label>
-                        </div>
-
-                        <!-- Password input -->
-                        <div class="form-outline mb-4">
-                            <input type="password" id="form1Example2" class="form-control" />
-                            <label class="form-label" for="form1Example2">Password</label>
-                        </div>
-
-                        <!-- 2 column grid layout for inline styling -->
-                        <div class="row mb-4">
-                            <div class="col d-flex justify-content-center">
-                                <!-- Checkbox -->
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="" id="form1Example3" checked />
-                                    <label class="form-check-label" for="form1Example3">
-                                        Remember me
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="col text-center">
-                                <!-- Simple link -->
-                                <a href="#!">Forgot password?</a>
-                            </div>
-                        </div>
-
-                        <!-- Submit button -->
-                        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Background image -->
-*@
-
+@using System
+@using System.IO
+@using Microsoft.AspNetCore.Hosting
 
 <div class="header-space"></div>
 
@@ -64,7 +18,7 @@
     <!-- Tabs navs -->
     <ul class="nav nav-tabs nav-fill mb-3" id="ex-2" role="tablist">
         <li class="nav-item" role="presentation">
-            <a class="nav-link text-muted active"
+            <a class="nav-link bg-light text-muted active"
                id="ex-2-tab-1"
                data-mdb-toggle="pill"
                href="#ex-2-tabs-1"
@@ -73,7 +27,7 @@
                aria-selected="true">Log In</a>
         </li>
         <li class="nav-item" role="presentation">
-            <a class="nav-link text-muted"
+            <a class="nav-link bg-light text-muted"
                id="ex-2-tab-2"
                data-mdb-toggle="pill"
                href="#ex-2-tabs-2"
@@ -106,15 +60,8 @@
                         </div>
                     </section>
 
-                    @*<div class="form-group mt-2">
-                        <label>Email Address</label>
-                        <input type="email" @bind-value="_LoginModel.Email" class="form-control" placeholder="Email Address" />
-                        <ValidationMessage For="@(()=>_LoginModel.Email)" />
-                    </div>*@
-
                     <section class="d-flex justify-content-center p-3">
                         <div class="input-group form-outline form-white">
-                            @*<i class="mi mi-Search trailing text-muted"></i>*@
                             <input type="password" id="formWhite"
                             @bind-value="_LoginModel.Password" class="form-control"
                                    aria-describedby="basic-addon" />
@@ -123,25 +70,11 @@
                         </div>
                     </section>
 
-                    @*<div class="form-group mt-2">
-                        <label>Password</label>
-                        <input type="password" @bind-value="_LoginModel.Password" class="form-control" placeholder="Password" />
-                        <ValidationMessage For="@(()=>_LoginModel.Password)" />
-                    </div>*@
                     <div class="d-flex flex-row mt-2 justify-content-center align-items-center">
-                            @*<div class="text-center p-4">*@
-                                <button type="submit" data-mdb-ripple-color="dark" class="btn btn-light mb-2 mx-2 mi-lg">
-                                    <i class="mi mi-MyNetwork"></i> Login
-                                    <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
-                                </button>
-                            @*</div>*@
-@*                            <button class="btn btn-primary" type="submit">
-                                <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
-                                Login
-                            </button>*@
-                            @*<NavLink class="nav-link" href="/register">
-                                <span>Register</span>
-                            </NavLink>*@
+                        <button type="submit" data-mdb-ripple-color="dark" class="btn btn-light mb-2 mx-2 mi-lg">
+                            <i class="mi mi-MyNetwork"></i> Login
+                            <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+                        </button>
                     </div>
                 </div>
             </EditForm>
@@ -155,9 +88,90 @@
 
                 <div class="container">
 
-                    <section class="d-flex justify-content-center p-3 bg-dark">
+                    <div class="w-100 bg-light"
+                         style="
+                        height: 10rem;
+                        border-top-left-radius: 2px;
+                        border-top-right-radius: 2px;
+                    "></div>
+                    <div class="d-flex justify-content-center" style="margin-top: -5.5rem;">
+                        <img class="img-fluid rounded-circle" style="width: 10rem; height: 10rem;"
+                             src="@_RegisterModel.ImagePath"
+                             alt="Card image" />
+                    </div>
+
+                    <section class="d-flex justify-content-center p-3">
+                        <div class="container form-group">
+                            <label class="form-label text-muted" for="formWhite">Picture</label>
+                            <div class="input-group form-outline form-white">
+                                <i class="mi mi-Search trailing"></i>
+
+                                <InputFile OnChange="@LoadFiles" accept=".jpg,.jpeg,.png" id="formWhite" class="form-control"
+                                           aria-describedby="basic-addon" />
+
+                                @* <input type="file" id="formWhite" accept=".jpg,.jpeg,.png" OnChange="@LoadFiles"
+                                @bind-value="_RegisterModel.ImagePath" class="form-control"
+                                aria-describedby="basic-addon" />*@
+                                <ValidationMessage For="@(()=>_RegisterModel.ImagePath)" />
+                            </div>
+                        </div>
+                    </section>
+
+
+
+@*                    <h3>Upload Files</h3>
+
+                    <p>
+                        <label>
+                            Max file size:
+                            <input type="number" @bind="maxFileSize" />
+                        </label>
+                    </p>
+
+                    <p>
+                        <label>
+                            Max allowed files:
+                            <input type="number" @bind="maxAllowedFiles" />
+                        </label>
+                    </p>
+
+                    <p>
+                        <label>
+                            Upload up to @maxAllowedFiles of up to @maxFileSize bytes:
+                            <InputFile OnChange="@LoadFiles" multiple accept=".jpg,.jpeg,.png" />
+                        </label>
+                    </p>
+
+                    @if (isLoading)
+                    {
+                        <p>Uploading...</p>
+                    }
+                    else
+                    {
+                        <ul>
+                            @foreach (var file in loadedFiles)
+                            {
+                                <li>
+                                    <ul>
+                                        <li>Name: @file.Name</li>
+                                        <li>Last modified: @file.LastModified.ToString()</li>
+                                        <li>Size (bytes): @file.Size</li>
+                                        <li>Content type: @file.ContentType</li>
+                                        <li>Extension: @extensionname</li>
+                                        <li style="display:@isdisplayimage">
+                                            <img alt="" src="@base64data" style="height:100px;width:100px;" />
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                    }*@
+
+
+
+                    <section class="d-flex justify-content-center p-3">
                         <div class="input-group form-outline form-white">
-                            <i class="mi mi-Search trailing text-muted"></i>
+                            <i class="mi mi-Mail trailing text-muted"></i>
                             <input type="email" id="formWhite"
                             @bind-value="_RegisterModel.Email" class="form-control"
                                    aria-describedby="basic-addon" />
@@ -166,72 +180,43 @@
                         </div>
                     </section>
 
-                    <section class="d-flex justify-content-center p-3 bg-dark">
+                    <section class="d-flex justify-content-center p-3">
                         <div class="input-group form-outline form-white">
                             <i class="mi mi-Search trailing text-muted"></i>
                             <input type="password" id="formWhite"
                             @bind-value="_RegisterModel.Password" class="form-control"
                                    aria-describedby="basic-addon" />
-                            @*<label class="form-label text-muted" for="formWhite">Password</label>*@
+                            <label class="form-label text-muted" for="formWhite">Password</label>
                             <ValidationMessage For="@(()=>_RegisterModel.Password)" />
                         </div>
                     </section>
 
-@*
-                    <div class="form-group mt-2">
-                        <label>Email Address</label>
-                        <input type="email" @bind-value="_RegisterModel.Email" class="form-control" placeholder="Email Address" />
-                        <ValidationMessage For="@(()=>_RegisterModel.Email)" />
-                    </div>
-                    <div class="form-group mt-2">
-                        <label>Password</label>
-                        <input type="password" @bind-value="_RegisterModel.Password" class="form-control" placeholder="Password" />
-                        <ValidationMessage For="@(()=>_RegisterModel.Password)" />
-                    </div>*@
+                    <section class="d-flex justify-content-center p-3">
+                        <div class="container form-group mt-2">
+                            <label class="text-muted">User Type</label>
+                            <div>
+                                @if (_UserType == null)
+                                {
+                                    <label>No Data Found.</label>
+                                }
 
-                    <section class="d-flex justify-content-center p-3 bg-dark">
-                        <div class="input-group form-outline form-white">
-                            <i class="mi mi-Search trailing text-muted"></i>
-                            <input type="file" id="formWhite"
-                            @bind-value="_RegisterModel.ImagePath" class="form-control"
-                                   aria-describedby="basic-addon" />
-                            <label class="form-label text-muted" for="formWhite">Picture</label>
-                            <ValidationMessage For="@(()=>_RegisterModel.ImagePath)" />
+                                else
+                                {
+                                    <select class="form-control text-muted" @bind="_RegisterModel.TypeId"
+                                            ValueExpression="@(()=> @_RegisterModel.TypeId)">
+                                        <option value="0">-- User Type --</option>
+                                        @foreach (var item in _UserType)
+                                        {
+                                            <option value="@item.Id">@item.Name</option>
+                                        }
+                                    </select>
+                                    <ValidationMessage For="@(()=>_RegisterModel.TypeId)" />
+                                }
+                            </div>
                         </div>
                     </section>
 
-                  @*  <div class="form-group mt-2">
-                        <label>Picture</label>
-                        <input type="file" @bind-value="_RegisterModel.ImagePath" class="form-control" placeholder="Picture" />
-                        <ValidationMessage For="@(()=>_RegisterModel.ImagePath)" />
-                    </div>*@
-
-                    <div class="form-group mt-2 bg-dark">
-                        <label>User Type</label>
-                        <div>
-                            @if (_UserType == null)
-                            {
-                                <label>No Data Found.</label>
-                            }
-
-                            else
-                            {
-                                <select class="form-control text-muted" @bind="_RegisterModel.TypeId"
-                                        ValueExpression="@(()=> @_RegisterModel.TypeId)">
-                                    <option value="0">-- User Type --</option>
-                                    @foreach (var item in _UserType)
-                                    {
-                                        <option value="@item.Id">@item.Name</option>
-                                    }
-                                </select>
-                                <ValidationMessage For="@(()=>_RegisterModel.TypeId)" />
-                            }
-                        </div>
-                    </div>
-
-                    
-
-                    <section class="d-flex justify-content-center p-3 bg-dark">
+                    <section class="d-flex justify-content-center p-3">
                         <div class="input-group form-outline form-white">
                             <i class="mi mi-Search trailing text-muted"></i>
                             <input type="text" id="formWhite"
@@ -242,7 +227,7 @@
                         </div>
                     </section>
 
-                    <section class="d-flex justify-content-center p-3 bg-dark">
+                    <section class="d-flex justify-content-center p-3">
                         <div class="input-group form-outline form-white">
                             <i class="mi mi-Search trailing text-muted"></i>
                             <input type="text" id="formWhite"
@@ -253,73 +238,55 @@
                         </div>
                     </section>
 
-                    <section class="d-flex justify-content-center p-3 bg-dark">
+                    <section class="d-flex justify-content-center p-3">
                         <div class="input-group form-outline form-white">
                             <i class="mi mi-Search trailing text-muted"></i>
                             <input type="text" id="formWhite"
                             @bind-value="_RegisterModel.Name" class="form-control"
                                    aria-describedby="basic-addon" />
-                            <label class="form-label text-muted" for="formWhite">Name</label>
+                            <label class="form-label text-muted" for="formWhite">Company Name</label>
                             <ValidationMessage For="@(()=>_RegisterModel.Name)" />
                         </div>
                     </section>
 
-                    <section class="d-flex justify-content-center p-3 bg-dark">
-                        <div class="input-group form-outline form-white">
-                            <i class="mi mi-Search trailing text-muted"></i>
-                            <input type="text" id="formWhite"
-                            @bind-value="_RegisterModel.Size" class="form-control"
-                                   aria-describedby="basic-addon" />
+                    <section class="d-flex justify-content-center p-3">
+                        <div class="container form-group">
                             <label class="form-label text-muted" for="formWhite">Size</label>
-                            <ValidationMessage For="@(()=>_RegisterModel.Size)" />
+                            <div class="input-group form-outline form-white">
+                                <i class="mi mi-Search trailing text-muted"></i>
+                                <input type="text" id="formWhite"
+                                @bind-value="_RegisterModel.Size" class="form-control"
+                                       aria-describedby="basic-addon" />
+                                <ValidationMessage For="@(()=>_RegisterModel.Size)" />
+                            </div>
                         </div>
                     </section>
 
-
-                   @* <div class="form-group mt-2">
-                        <label>First Name</label>
-                        <input @bind-value="_RegisterModel.FirstName" class="form-control" placeholder="First Name" />
-                        <ValidationMessage For="@(()=>_RegisterModel.FirstName)" />
-                    </div>
-                    <div class="form-group mt-2">
-                        <label>Last Name</label>
-                        <input @bind-value="_RegisterModel.LastName" class="form-control" placeholder="Last Name" />
-                        <ValidationMessage For="@(()=>_RegisterModel.LastName)" />
-                    </div>
-                    <div class="form-group mt-2">
-                        <label>Company Name</label>
-                        <input @bind-value="_RegisterModel.Name" class="form-control" placeholder="Company Name" />
-                        <ValidationMessage For="@(()=>_RegisterModel.Name)" />
-                    </div>
-                    <div class="form-group mt-2">
-                        <label>Size</label>
-                        <input @bind-value="_RegisterModel.Size" class="form-control" placeholder="Size" />
-                        <ValidationMessage For="@(()=>_RegisterModel.Size)" />
-                    </div>*@
-                    <div class="form-group mt-2 bg-dark">
-                        <label>Industry</label>
-                        <div>
-                            @if (_Industry == null)
-                            {
-                                <label>No Data Found.</label>
-                            }
-
-                            else
-                            {
-                                <select class="form-control text-muted" @bind="_RegisterModel.IndustryId"
-                                        ValueExpression="@(()=> @_RegisterModel.IndustryId)">
-                                    <option value="0">-- Industry --</option>
-                                    @foreach (var item in _Industry)
-                                    {
-                                        <option value="@item.Id">@item.Name</option>
-                                    }
-                                </select>
-                                <ValidationMessage For="@(()=>_RegisterModel.IndustryId)" />
-                            }
+                    <section class="d-flex justify-content-center p-3">
+                        <div class="container form-group mt-2">
+                            <label class="text-muted">Category</label>
+                            <div>
+                                @if (_Industry == null)
+                                {
+                                    <label>No Data Found.</label>
+                                }
+                                else
+                                {
+                                    <select class="form-control text-muted" @bind="_RegisterModel.IndustryId"
+                                            ValueExpression="@(()=> @_RegisterModel.IndustryId)">
+                                        <option value="0">-- Category --</option>
+                                        @foreach (var item in _Industry)
+                                        {
+                                            <option value="@item.Id">@item.Name</option>
+                                        }
+                                    </select>
+                                    <ValidationMessage For="@(()=>_RegisterModel.IndustryId)" />
+                                }
+                            </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <section class="d-flex justify-content-center p-3 bg-dark">
+                    <section class="d-flex justify-content-center p-3">
                         <div class="input-group form-outline form-white">
                             <i class="mi mi-Search trailing text-muted"></i>
                             <input type="text" id="formWhite"
@@ -329,29 +296,27 @@
                             <ValidationMessage For="@(()=>_RegisterModel.Number)" />
                         </div>
                     </section>
-                   @* <div class="form-group mt-2">
-                        <label>Mobile Number</label>
-                        <input @bind-value="_RegisterModel.Number" class="form-control" placeholder="Mobile Number" />
-                        <ValidationMessage For="@(()=>_RegisterModel.Number)" />
-                    </div>*@
 
-                    <div class="d-flex flex-row mt-4 bg-dark">
+                    <section class="d-flex justify-content-center p-3">
+                        <div class="input-group form-outline form-white">
+                            <i class="mi mi-Search trailing text-muted"></i>
+                            <input type="text" id="formWhite"
+                            @bind-value="_RegisterModel.Address" class="form-control"
+                                   aria-describedby="basic-addon" />
+                            <label class="form-label text-muted" for="formWhite">Address</label>
+                            <ValidationMessage For="@(()=>_RegisterModel.Address)" />
+                        </div>
+                    </section>
+
+                    <div class="d-flex flex-row mt-2 justify-content-center align-items-center">
                         <div class="d-flex justify-content-center align-items-center">
-                            @*<div class="text-center p-4">*@
                             <button type="submit" data-mdb-ripple-color="dark" class="btn btn-light mb-2 mx-2 mi-lg">
                                 <i class="mi mi-MyNetwork"></i> Register
                                 <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
                             </button>
-                            @*</div>*@
-                            @*                            <button class="btn btn-primary" type="submit">
-                            <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
-                            Login
-                            </button>*@
-                            @*<NavLink class="nav-link" href="/register">
-                            <span>Register</span>
-                            </NavLink>*@
                         </div>
                     </div>
+
                 </div>
             </EditForm>
         </div>
@@ -362,59 +327,6 @@
 <div class="footer-space"></div>
 
 
-@*<section class="portal">
-<EditForm Model="@_LoginModel" OnValidSubmit="logIn">
-    <DataAnnotationsValidator />*@
- @*   <div class="form">
-        <div class="title">
-            <h1>LOG IN</h1>
-            <p>Welcome back! Please enter your details.</p>
-        </div>
-        <div class="input-field">
-            <input type="email" id="username" @bind-value="_LoginModel.Email" />
-            <label for="username">Email Address</label>
-            <ValidationMessage For="@(()=>_LoginModel.Email)" />
-        </div>
-        <div class="input-field">
-                <input type="password" id="password" @bind-value="_LoginModel.Password" />
-                <label for="password">Password</label>
-                <ValidationMessage For="@(()=>_LoginModel.Password)" />
-                <img id="show-hide-pass" src="../Resources/Images/show_eye.svg" alt="" />
-        </div>
-        <a href="#" id="forgot-pass">Forgot Password</a>
-        <button id="signin">Sign In</button>
-        <p id="signup">
-            Don't have an account?
-            <a href="#">Sign up</a>
-        </p>
-    </div>*@
-
-  @*  <div class="container">
-        <div class="form-group mt-2">
-            <label>Email Address</label>
-            <input type="email" @bind-value="_LoginModel.Email" class="form-control" placeholder="Email Address" />
-            <ValidationMessage For="@(()=>_LoginModel.Email)" />
-        </div>
-        <div class="form-group mt-2">
-            <label>Password</label>
-            <input type="password" @bind-value="_LoginModel.Password" class="form-control" placeholder="Password" />
-            <ValidationMessage For="@(()=>_LoginModel.Password)" />
-        </div>
-        <div class="d-flex flex-row mt-2">
-            <div class="d-flex justify-content-between">
-                <button class="btn btn-primary" type="submit">
-                    <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
-                    Login
-                </button>
-                <NavLink class="nav-link" href="/register">
-                    <span>Register</span>
-                </NavLink>
-            </div>
-        </div>
-    </div>
-</EditForm>
-</section>*@
-
 @code {
     LoginModel _LoginModel = new();
     RegisterModel _RegisterModel = new();
@@ -424,6 +336,50 @@
     List<SettingsResponseModel> _Industry;
     public string UserTypeId = "0b055410-9e2c-4dd8-a9f9-08db6683f67a";
     public string IndustryTypeId = "2767c68a-8da6-46cf-00ab-08db66b7e9a1";
+
+    private List<IBrowserFile> loadedFiles = new();
+    private long maxFileSize = 1024 * 15;
+    private int maxAllowedFiles = 1;
+    private bool isLoading;
+    private string extensionname = "default";
+    private bool isInfluencer = false;
+    //InputFile Chnage event
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        isLoading = true;
+        loadedFiles.Clear();
+        foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
+        {
+            try
+            {
+                loadedFiles.Add(file);
+
+                //get the upload file extension.
+                extensionname = Path.GetExtension(file.Name);
+
+                var imagefiletypes = new List<string>() {
+                    ".png",".jpg",".jpeg"
+                };
+                if (imagefiletypes.Contains(extensionname))
+                {
+
+                    //resize the image and create the thumbnails
+                    var resizedFile = await file.RequestImageFileAsync(file.ContentType, 640, 480); // resize the image file
+                    var buf = new byte[resizedFile.Size]; // allocate a buffer to fill with the file's data
+                    using (var stream = resizedFile.OpenReadStream())
+                    {
+                        await stream.ReadAsync(buf); // copy the stream to the buffer
+                    }
+                    _RegisterModel.ImagePath = "data:image/png;base64," + Convert.ToBase64String(buf); // convert to a base64 string!!
+                }
+            }
+            catch (Exception ex)
+            {
+                await App.Current.MainPage.DisplayAlert("Oops", "Try again!", "OK");
+            }
+        }
+        isLoading = false;
+    }
 
     private async void register()
     {
@@ -462,15 +418,18 @@
             string _EmailVerified    = jsontoken.Claims.FirstOrDefault(f => f.Type == "ev").Value;
             string _PasswordVerified = jsontoken.Claims.FirstOrDefault(f => f.Type == "pv").Value;
             string _IsActive         = jsontoken.Claims.FirstOrDefault(f => f.Type == "ia").Value;
-            string _RefreshToken     = jsontoken.Claims.FirstOrDefault(f => f.Type == "rt").Value;
+            string _RefreshToken     = "";
+            //string _RefreshToken     = jsontoken.Claims.FirstOrDefault(f => f.Type == "rt").Value;
             string _TypeId           = jsontoken.Claims.FirstOrDefault(f => f.Type == "ti").Value;
             string _FirstName        = jsontoken.Claims.FirstOrDefault(f => f.Type == "fn").Value;
             string _LastName         = jsontoken.Claims.FirstOrDefault(f => f.Type == "ln").Value;
             string _Name             = jsontoken.Claims.FirstOrDefault(f => f.Type == "nm").Value;
             string _Number           = jsontoken.Claims.FirstOrDefault(f => f.Type == "nr").Value;
-            string _ImagePath        = jsontoken.Claims.FirstOrDefault(f => f.Type == "mp").Value;
+            string _ImagePath        = "";
             string _IndustryId       = jsontoken.Claims.FirstOrDefault(f => f.Type == "ii").Value;
             string _Size             = jsontoken.Claims.FirstOrDefault(f => f.Type == "sz").Value;
+            string _InfluencerId     = jsontoken.Claims.FirstOrDefault(f => f.Type == "if").Value;
+            string _UserTypeId         = jsontoken.Claims.FirstOrDefault(f => f.Type == "ut").Value;
 
             var _LoginSecureStorage = new LoginSecureStorage
                 {
@@ -489,6 +448,8 @@
                     ImagePath = _ImagePath,
                     IndustryId = new Guid(_IndustryId),
                     Size = Convert.ToInt32(_Size),
+                    InfluencerId = new Guid(_InfluencerId),
+                    UserTypeId = new Guid(_UserTypeId),
                     AccessToken = tokenResponse.AccessToken,
                     RefreshToken = tokenResponse.RefreshToken
                 };
@@ -497,7 +458,17 @@
             await SecureStorage.SetAsync(nameof(LoginSetting.LoginSecureStorage), userBasicInfoStr);
             LoginSetting.LoginSecureStorage = _LoginSecureStorage;
 
-            Navigation.NavigateTo("/");
+            String uti = "F6D62DCB-BD13-4002-8668-8F2544B65B87";
+            if (LoginSetting.LoginSecureStorage.UserTypeId == new Guid(uti))
+            {
+                Navigation.NavigateTo("/collab");
+                isInfluencer = true;
+            }
+            else
+            {
+                Navigation.NavigateTo("/");
+                isInfluencer = false;
+            }
         }
         else
         {

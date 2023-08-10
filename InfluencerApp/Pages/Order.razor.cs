@@ -20,16 +20,16 @@ public partial class Order
     private List<Product>? _products;
     private IEnumerable<Product[]>? _productChunksOf4;
 
-    protected override async Task OnInitializedAsync()
-    {
-        _products = await HttpClient.GetFromJsonAsync<List<Product>>($"{APIs._baseUrl}/products");
-        //_products = await HttpClient.GetFromJsonAsync<List<Product>>($"{APIs._baseUrl}/products");
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    _products = await HttpClient.GetFromJsonAsync<List<Product>>($"{APIs._baseUrl}/products");
+    //    //_products = await HttpClient.GetFromJsonAsync<List<Product>>($"{APIs._baseUrl}/products");
 
-        if (_products is not null)
-        {
-            _productChunksOf4 = _products.Chunk(4);
-        }
-    }
+    //    if (_products is not null)
+    //    {
+    //        _productChunksOf4 = _products.Chunk(4);
+    //    }
+    //}
 
     private async Task OnClickBtnBuyNowAsync(List<Product> product)
     {

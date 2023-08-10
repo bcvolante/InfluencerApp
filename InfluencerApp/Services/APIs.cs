@@ -11,9 +11,7 @@ namespace InfluencerApp.Services
         public const string _baseUrl = "https://localhost:7077/";
         //public const string _baseUrl = "http://localhost:5194/";
         //public const string _baseUrl = "https://2cef-94-205-243-114.in.ngrok.io/";
-        //public const string _baseUrl = "https://eae4-94-205-243-114.ngrok-free.app/";
-        
-
+        //public const string _baseUrl = "https://ea80-94-204-164-200.ngrok-free.app/";
 
         public const string InsertRiders = "api/Settings/Create";
         public const string Create = "api/Settings/Create";
@@ -24,6 +22,7 @@ namespace InfluencerApp.Services
         public const string AuthenticateUsersLogin = "api/Login/AuthenticateUser";
         public const string GetByEmail = "api/Users/GetByEmail/";
         public const string UpdateUsers = "api/Users/Update/";
+        public const string GetById = "api/Users/GetById/";
         public const string GetIndustryWithData = "api/Settings/GetIndustryWithData/";
         public const string GetInfluencerByRanking = "api/Influencer/GetInfluencerByRanking/";
         public const string GetInfluencerById = "api/Influencer/GetInfluencerById/";
@@ -36,12 +35,13 @@ namespace InfluencerApp.Services
 		public const string CreateTarget = "api/Order/CreateTarget/";
 		public const string GetUserById = "api/Order/GetUserById/";
         public const string GetOrderById = "api/Order/GetOrderById/";
+        public const string GetOrderByInfluencerId = "api/Order/GetOrderByInfluencerId/";
         public const string ViewOrder = "api/Order/ViewOrder/";
         public const string ViewOrderDetail = "api/Order/ViewOrderDetail/";
         public const string ViewOrderTarget = "api/Order/ViewOrderTarget/";
+        public const string UpdateOrder = "api/Order/UpdateOrder/";
         public const string CheckoutOrderById = "api/Order/CheckoutOrderById/";
         public const string checkout = "checkout";
-
 
     }
 }

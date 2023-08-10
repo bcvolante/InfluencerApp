@@ -142,6 +142,33 @@ namespace InfluencerApp.Services
             }
             return returnResponse;
         }
+        public async Task<List<OrderResponse>> GetOrderByInfluencerId(string id)
+        {
+            var returnResponse = new List<OrderResponse>();
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    var url = $"{APIs._baseUrl}{APIs.GetOrderByInfluencerId}{id}";
+                    var apiResponse = await client.GetAsync(url);
+
+                    if (apiResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        var response = await apiResponse.Content.ReadAsStringAsync();
+                        var deserializeResponse = JsonConvert.DeserializeObject<MainResponseModel>(response);
+                        if (deserializeResponse.IsSuccess)
+                        {
+                            returnResponse = JsonConvert.DeserializeObject<List<OrderResponse>>(deserializeResponse.Content.ToString());
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string msg = ex.Message;
+            }
+            return returnResponse;
+        }
         public async Task<List<Product>> CheckoutOrderById(string id)
         {
             var returnResponse = new List<Product>();
@@ -250,6 +277,23 @@ namespace InfluencerApp.Services
             }
             return returnResponse;
         }
+        public async Task<string> UpdateOrder(UpdateOrderRequest _UpdateOrderRequest)
+        {
+            string returnStr = string.Empty;
+            using (var client = new HttpClient())
+            {
+                var url = $"{APIs._baseUrl}{APIs.UpdateOrder}";
 
+                var serializedStr = JsonConvert.SerializeObject(_UpdateOrderRequest);
+
+                var response = await client.PutAsync(url, new StringContent(serializedStr, Encoding.UTF8, "application/json"));
+
+                if (response.IsSuccessStatusCode)
+                {
+                    returnStr = await response.Content.ReadAsStringAsync();
+                }
+            }
+            return returnStr;
+        }
     }
 }

@@ -299,8 +299,64 @@
                     }
                 }
                     <div class="text-center p-4">
-                        <button type="button" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" style="background-color: #b91d1d;" @onclick="args=>saveOrder(_OrderModelRequest, _DetailModel, _TargetViewModel, args)"><i class="mi mi-MyNetwork"></i> Book Now</button>
+
+                        @if(isInfluencer == true)
+                        {
+                            @if(_OrderModelRequest.IsApproved == false && _OrderModelRequest.Status == "Order Received")
+                            {
+                                <button type="button" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" style="background-color: #b91d1d;" @onclick="args=>approvedOrder(args)"><i class="mi mi-Save"></i> Approved</button>
+                                <button type="button" data-mdb-ripple-color="dark" class="btn btn-link text-dark fw-lighter mx-2 mi-4x" ><i class="mi mi-Info d-block" @onclick="args=>disapprovedOrder(args)"></i> Disapproved</button>
+                            }
+                            else if(_OrderModelRequest.IsApproved == true)
+                            {
+                                <h6 class="mx-auto text-muted small fw-lighter">STATUS</h6>
+                                @if(_OrderModelRequest.Status == "Approved")
+                                {
+                                    <h3 class="mx-auto text-success fw-lighter">@_OrderModelRequest.Status</h3>
+                                }
+                                else
+                                {
+                                    <h3 class="mx-auto text-danger fw-lighter">@_OrderModelRequest.Status</h3>
+                                    <h5 class="mx-auto text-muted small fw-lighter">@_OrderModelRequest.Remarks</h5>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            @if(_OrderModelRequest.IsApproved == false && _OrderModelRequest.Status == "Order Received")
+                            {
+                                <h6 class="mx-auto text-muted small fw-lighter">STATUS</h6>
+                                <h3 class="mx-auto text-success fw-lighter">@_OrderModelRequest.Status</h3>
+                                <button type="button" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" style="background-color: #b91d1d;"><i class="mi mi-MyNetwork"></i> Update</button>
+                            }
+                            else if(_OrderModelRequest.IsApproved == true)
+                            {
+                                <h6 class="mx-auto text-muted small fw-lighter">STATUS</h6>
+                                @if(_OrderModelRequest.Status == "Approved")
+                                {
+                                    <h3 class="mx-auto text-success fw-lighter">@_OrderModelRequest.Status</h3>
+                                    <button type="button" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" style="background-color: #b91d1d;"><i class="mi mi-MyNetwork"></i> Pay Now</button>
+                                }
+                                else
+                                {
+                                    <h3 class="mx-auto text-danger fw-lighter">@_OrderModelRequest.Status</h3>
+                                    <h5 class="mx-auto text-muted small fw-lighter">@_OrderModelRequest.Remarks</h5>
+                                }
+                            }
+                            else
+                            {
+                                <button type="button" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" style="background-color: #b91d1d;" @onclick="args=>saveOrder(_OrderModelRequest, _DetailModel, _TargetViewModel, args)"><i class="mi mi-MyNetwork"></i> Book Now</button>
+                            }
+                        }
                     </div>
+
+
+                    @*@if (LoginSetting.LoginSecureStorage.UserTypeId != uti)
+                    {
+                        <button type="submit" data-mdb-ripple-color="dark" class="btn btn-dark mb-2 mx-2 mi-lg" style="background-color: #b91d1d;"><i class="mi mi-Save"></i> Save</button>
+                    }
+
+                    <button type="button" data-mdb-ripple-color="dark" class="btn btn-link text-dark fw-lighter mx-2 mi-4x" @onclick="SignOut"><i class="mi mi-Info d-block"></i> Logout</button>*@
             </div>
             <div class="tab-pane fade" id="ex-2-tabs-2" role="tabpanel" aria-labelledby="pills-2-tab">
                 <section class="d-flex justify-content-center p-3 bg-light">
@@ -410,6 +466,7 @@
     TargetViewModel targetViewModel;
     //OrderViewModel _OrderViewModel = new();
     OrderModelRequest _OrderModelRequest = new();
+    UpdateOrderRequest _UpdateOrderRequest = new();
 
 
     Dictionary<string, object> restDayAttributes = new();
@@ -421,6 +478,59 @@
     private int todayYear = DateTime.Now.Year;
     private int todayMonth = DateTime.Now.Month;
     private int todayDay = DateTime.Now.Day;
+    String uti = "F6D62DCB-BD13-4002-8668-8F2544B65B87";
+    private bool isInfluencer = false;
+    private string _remarks = "Disapproved";
+
+    private async void approvedOrder(MouseEventArgs args)
+    {
+        await Task.Delay(1);
+        _UpdateOrderRequest = new UpdateOrderRequest()
+            {
+                Id = new Guid(orderId),
+                UserId = new Guid(influencerId),
+                InfluencerId = LoginSetting.LoginSecureStorage.InfluencerId,
+                IsActive = true,
+                IsApproved = true,
+                Status = "Approved",
+                Remarks = "Approved"
+            };
+        var response = await OrderService.UpdateOrder(_UpdateOrderRequest);
+        if (!string.IsNullOrWhiteSpace(response))
+        {
+            await App.Current.MainPage.DisplayAlert("Success", "Record successfully approved!", "OK");
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Failed", "Approving record failed!", "OK");
+        }
+        this.StateHasChanged();
+    }
+
+    private async void disapprovedOrder(MouseEventArgs args)
+    {
+        await Task.Delay(1);
+        _UpdateOrderRequest = new UpdateOrderRequest()
+            {
+                Id = new Guid(orderId),
+                UserId = new Guid(influencerId),
+                InfluencerId = LoginSetting.LoginSecureStorage.InfluencerId,
+                IsActive = false,
+                IsApproved = false,
+                Status = "Disapproved",
+                Remarks = _remarks
+            };
+        var response = await OrderService.UpdateOrder(_UpdateOrderRequest);
+        if (!string.IsNullOrWhiteSpace(response))
+        {
+            await App.Current.MainPage.DisplayAlert("Success", "Record successfully disapproved!", "OK");
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Failed", "Disapproving record failed!", "OK");
+        }
+        this.StateHasChanged();
+    }
 
     private async void saveOrder(OrderModelRequest omr, List<DetailModel> dm, List<TargetViewModel> tvm, MouseEventArgs args)
     {
@@ -443,11 +553,11 @@
             await Task.Delay(1);
             _products = await OrderService.CheckoutOrderById(id.ToString());
             await Task.Delay(1);
-            var url = "https://localhost:7247/order/" + id.ToString();
-            await JSRuntime.InvokeAsync<object>("open", url, "_blank");
+            //var url = "https://localhost:7247/order/" + id.ToString();
+            //await JSRuntime.InvokeAsync<object>("open", url, "_blank");
             //await OnClickBtnBuyNowAsync(_products);
             //Navigation.NavigateTo("/order");
-            //await App.Current.MainPage.DisplayAlert("Success", "Record added successfully!", "OK");
+            await App.Current.MainPage.DisplayAlert("Success", "Record added successfully!", "OK");
 
             await Task.Delay(1);
         }
@@ -465,12 +575,38 @@
 
     protected async override Task OnInitializedAsync()
     {
-        _InfluencerViewModel = await InfluencerService.GetInfluencerById(influencerId);
-        _ServiceViewModel = await InfluencerService.GetInfluencerServiceById(influencerId);
-        _RestDayModel = await InfluencerService.GetInfluencerRestDayById(influencerId);
+
+        string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
+
+        if (!string.IsNullOrWhiteSpace(userDetailsStr))
+        {
+            if (LoginSetting.LoginSecureStorage.UserTypeId == new Guid(uti))
+            {
+                isInfluencer = true;
+            }
+            else
+            {
+                isInfluencer = false;
+            }
+        }
+        if (isInfluencer == true)
+        {
+            _InfluencerViewModel = await InfluencerService.GetInfluencerById(LoginSetting.LoginSecureStorage.InfluencerId.ToString());
+            _ServiceViewModel = await InfluencerService.GetInfluencerServiceById(LoginSetting.LoginSecureStorage.InfluencerId.ToString());
+            _RestDayModel = await InfluencerService.GetInfluencerRestDayById(LoginSetting.LoginSecureStorage.InfluencerId.ToString());
+            _TimeViewModel = await InfluencerService.GetInfluencerTimeTypeById(LoginSetting.LoginSecureStorage.InfluencerId.ToString());
+            _OrderUserResponse = await OrderService.GetUserById(LoginSetting.LoginSecureStorage.InfluencerId.ToString());
+        }
+        else
+        {
+            _InfluencerViewModel = await InfluencerService.GetInfluencerById(influencerId);
+            _ServiceViewModel = await InfluencerService.GetInfluencerServiceById(influencerId);
+            _RestDayModel = await InfluencerService.GetInfluencerRestDayById(influencerId);
+            _TimeViewModel = await InfluencerService.GetInfluencerTimeTypeById(influencerId);
+            _OrderUserResponse = await OrderService.GetUserById(influencerId);
+        }
+
         _timeTypeSetup = await AppService.FilterBy(timeTypeId);
-        _TimeViewModel = await InfluencerService.GetInfluencerTimeTypeById(influencerId);
-        _OrderUserResponse = await OrderService.GetUserById(influencerId);
         _products = await OrderService.CheckoutOrderById(orderId);
 
         foreach (var item in _TimeViewModel)
@@ -481,8 +617,6 @@
         restDayAttributes.Add("value", minDate);
         restDayAttributes.Add("min", minDate);
 
-        string userDetailsStr = await SecureStorage.GetAsync(nameof(LoginSetting.LoginSecureStorage));
-
         if (!string.IsNullOrWhiteSpace(userDetailsStr))
         {
             var userBasicDetail = JsonConvert.DeserializeObject<LoginSecureStorage>(userDetailsStr);
@@ -490,22 +624,28 @@
             var handler = new JwtSecurityTokenHandler();
             var jsontoken = handler.ReadToken(userBasicDetail.AccessToken) as JwtSecurityToken;
             LoginSetting.LoginSecureStorage = userBasicDetail;
-
-            if (jsontoken.ValidTo < DateTime.UtcNow)
+            if (isInfluencer == true)
             {
-                Navigation.NavigateTo("/login");
+                _OrderModelRequest.UserId = new Guid(influencerId);
             }
             else
             {
                 _OrderModelRequest.UserId = LoginSetting.LoginSecureStorage.UserId;
             }
         }
+        //else
+        //{
+        //    Navigation.NavigateTo("/login");
+        //}
+        _OrderModelRequest.Date = minDate.ToString();
+        if (isInfluencer == true)
+        {
+            _OrderModelRequest.InfluencerId = LoginSetting.LoginSecureStorage.InfluencerId;
+        }
         else
         {
-            Navigation.NavigateTo("/login");
+            _OrderModelRequest.InfluencerId = new Guid(influencerId);
         }
-        _OrderModelRequest.Date = minDate.ToString();
-        _OrderModelRequest.InfluencerId = new Guid(influencerId);
 
         if (orderId is not null)
         {
@@ -577,14 +717,14 @@
         var _HttpClient = new HttpClient();
         var response = await _HttpClient.PostAsJsonAsync($"{APIs._baseUrl}checkout", product);
 
-        response.EnsureSuccessStatusCode();
+        //response.EnsureSuccessStatusCode();
 
-        var responseBody = await response.Content.ReadAsStringAsync();
+        //var responseBody = await response.Content.ReadAsStringAsync();
 
-        var checkoutOrderResponse = JsonConvert.DeserializeObject<CheckoutOrderResponse>(responseBody);
+        //var checkoutOrderResponse = JsonConvert.DeserializeObject<CheckoutOrderResponse>(responseBody);
 
         // Opens up Stripe.
-        await JSRuntime.InvokeVoidAsync("checkout", checkoutOrderResponse.PubKey, checkoutOrderResponse.SessionId);
+        //await JSRuntime.InvokeVoidAsync("checkout", checkoutOrderResponse.PubKey, checkoutOrderResponse.SessionId);
     }
 
 
